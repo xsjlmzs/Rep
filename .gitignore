@@ -1,0 +1,3 @@
+# git ignore files
+.vscode
+build/

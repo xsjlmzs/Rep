@@ -1,0 +1,8 @@
+syntax = "proto3";
+package message;
+
+message Message {
+    // transaction id
+    int64 msg_id = 1;
+    
+}
