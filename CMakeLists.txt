@@ -15,18 +15,36 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 add_subdirectory(proto)
 
-add_executable(${PROJECT_NAME} main.cc)
+add_executable(client cmain.cc 
+      ./client/client.cc
+      ./common/common.cc)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/proto/include)
+add_executable(server smain.cc
+      ./common/txn.cc
+      ./common/convert.cc
+      ./common/common.cc)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Proto)
+target_include_directories(client PRIVATE
+      ${PROJECT_SOURCE_DIR}/proto/include 
+      ${PROJECT_SOURCE_DIR}/client
+      ${PROJECT_SOURCE_DIR}/common)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+target_include_directories(server PRIVATE
+      ${PROJECT_SOURCE_DIR}/proto/include
+      ${PROJECT_SOURCE_DIR}/common)
+
+target_link_libraries(client PRIVATE Proto zmqpp zmq)
+
+target_link_libraries(server PRIVATE Proto pthread zmqpp zmq)
 
 # 编译器警告信息flag
 set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
 set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
-target_compile_options(${PROJECT_NAME} INTERFACE
+target_compile_options(server INTERFACE
+  "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused>>"
+  "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
+)
+target_compile_options(client INTERFACE
   "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused>>"
   "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
 )

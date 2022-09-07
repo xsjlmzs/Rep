@@ -1,8 +1,40 @@
 syntax = "proto3";
+
 package message;
 
-message Message {
-    // transaction id
-    int64 msg_id = 1;
+message Node {
+    string ip = 1;
+    uint32 port = 2;
+}
+
+enum OpType {
+    INVALID = 0;
+    GET = 1;
+    PUT = 2;
+    DELETE = 3; // not used
+}
+
+message Command {
+    OpType type = 1;
     
+    string key = 2;
+
+    string value = 3;
+}
+
+message Txn {
+    // transaction id
+    int64 txn_id = 1;
+    
+    repeated Command commands = 2;
+}
+
+message Request {
+    
+    uint64 timestamp = 1;
+
+    Node to_node = 2;
+
+    repeated Command commands = 3;
+
 }

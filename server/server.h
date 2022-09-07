@@ -14,7 +14,7 @@ private:
     // 获得client的request
     
 
-    void RunLoop()
+    void RunLoop();
 public:
     Server(/* args */);
     ~Server();

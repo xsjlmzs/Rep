@@ -1,8 +1,0 @@
-syntax = "proto3";
-package txn;
-
-message Txn {
-    // transaction id
-    int64 txn_id = 1;
-    
-}
