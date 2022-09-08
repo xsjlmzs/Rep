@@ -2,7 +2,6 @@
 #include <random>
 
 #include "client.h"
-#include "message.pb.h"
 
 Client::Client(/* args */)
 {
@@ -14,6 +13,7 @@ Client::~Client()
 
 message::Txn CmdToTxn(const std::vector<std::vector<std::string>>& cmds)
 {
+    static int counter = 0;
     message::Txn txn;
     for (const std::vector<std::string> &cmd : cmds)
     {
@@ -35,6 +35,7 @@ message::Txn CmdToTxn(const std::vector<std::vector<std::string>>& cmds)
             continue;
         }
     }
+    txn.set_txn_id(counter++);
     return txn;
 }
 

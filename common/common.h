@@ -17,8 +17,8 @@ bool OpenFile(const std::string&, const std::string&, std::ifstream&);
 
 struct Node
 {
-    std::string ip;
-    int port;
+    std::string ip = "127.0.0.1";
+    int port = 9999;
 
     std::string to_string()
     {

@@ -33,7 +33,7 @@ message Request {
     
     uint64 timestamp = 1;
 
-    Node to_node = 2;
+    Node dest_node = 2;
 
     repeated Command commands = 3;
 

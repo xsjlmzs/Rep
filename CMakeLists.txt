@@ -31,6 +31,7 @@ target_include_directories(client PRIVATE
 
 target_include_directories(server PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include
+      ${PROJECT_SOURCE_DIR}/server}
       ${PROJECT_SOURCE_DIR}/common)
 
 target_link_libraries(client PRIVATE Proto zmqpp zmq)

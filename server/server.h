@@ -3,17 +3,14 @@
 
 #include <string>
 
+#include "common.h"
+
 class Server
 {
 private:
-    /* data */
-    std::string host;
-    
-    unsigned int port;
+    Node node;
 
     // 获得client的request
-    
-
     void RunLoop();
 public:
     Server(/* args */);

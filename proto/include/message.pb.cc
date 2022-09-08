@@ -65,7 +65,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR Request::Request(
     ::_pbi::ConstantInitialized)
   : commands_()
-  , to_node_(nullptr)
+  , dest_node_(nullptr)
   , timestamp_(uint64_t{0u}){}
 struct RequestDefaultTypeInternal {
   PROTOBUF_CONSTEXPR RequestDefaultTypeInternal()
@@ -114,7 +114,7 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::message::Request, timestamp_),
-  PROTOBUF_FIELD_OFFSET(::message::Request, to_node_),
+  PROTOBUF_FIELD_OFFSET(::message::Request, dest_node_),
   PROTOBUF_FIELD_OFFSET(::message::Request, commands_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -136,15 +136,15 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   " \001(\t\022\014\n\004port\030\002 \001(\r\"D\n\007Command\022\035\n\004type\030\001 "
   "\001(\0162\017.message.OpType\022\013\n\003key\030\002 \001(\t\022\r\n\005val"
   "ue\030\003 \001(\t\"9\n\003Txn\022\016\n\006txn_id\030\001 \001(\003\022\"\n\010comma"
-  "nds\030\002 \003(\0132\020.message.Command\"`\n\007Request\022\021"
-  "\n\ttimestamp\030\001 \001(\004\022\036\n\007to_node\030\002 \001(\0132\r.mes"
-  "sage.Node\022\"\n\010commands\030\003 \003(\0132\020.message.Co"
-  "mmand*3\n\006OpType\022\013\n\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n"
-  "\003PUT\020\002\022\n\n\006DELETE\020\003b\006proto3"
+  "nds\030\002 \003(\0132\020.message.Command\"b\n\007Request\022\021"
+  "\n\ttimestamp\030\001 \001(\004\022 \n\tdest_node\030\002 \001(\0132\r.m"
+  "essage.Node\022\"\n\010commands\030\003 \003(\0132\020.message."
+  "Command*3\n\006OpType\022\013\n\007INVALID\020\000\022\007\n\003GET\020\001\022"
+  "\007\n\003PUT\020\002\022\n\n\006DELETE\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 346, descriptor_table_protodef_message_2eproto,
+    false, false, 348, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -876,12 +876,12 @@ void Txn::InternalSwap(Txn* other) {
 
 class Request::_Internal {
  public:
-  static const ::message::Node& to_node(const Request* msg);
+  static const ::message::Node& dest_node(const Request* msg);
 };
 
 const ::message::Node&
-Request::_Internal::to_node(const Request* msg) {
-  return *msg->to_node_;
+Request::_Internal::dest_node(const Request* msg) {
+  return *msg->dest_node_;
 }
 Request::Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -894,10 +894,10 @@ Request::Request(const Request& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       commands_(from.commands_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  if (from._internal_has_to_node()) {
-    to_node_ = new ::message::Node(*from.to_node_);
+  if (from._internal_has_dest_node()) {
+    dest_node_ = new ::message::Node(*from.dest_node_);
   } else {
-    to_node_ = nullptr;
+    dest_node_ = nullptr;
   }
   timestamp_ = from.timestamp_;
   // @@protoc_insertion_point(copy_constructor:message.Request)
@@ -905,9 +905,9 @@ Request::Request(const Request& from)
 
 inline void Request::SharedCtor() {
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&to_node_) - reinterpret_cast<char*>(this)),
+    reinterpret_cast<char*>(&dest_node_) - reinterpret_cast<char*>(this)),
     0, static_cast<size_t>(reinterpret_cast<char*>(&timestamp_) -
-    reinterpret_cast<char*>(&to_node_)) + sizeof(timestamp_));
+    reinterpret_cast<char*>(&dest_node_)) + sizeof(timestamp_));
 }
 
 Request::~Request() {
@@ -921,7 +921,7 @@ Request::~Request() {
 
 inline void Request::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  if (this != internal_default_instance()) delete to_node_;
+  if (this != internal_default_instance()) delete dest_node_;
 }
 
 void Request::SetCachedSize(int size) const {
@@ -935,10 +935,10 @@ void Request::Clear() {
   (void) cached_has_bits;
 
   commands_.Clear();
-  if (GetArenaForAllocation() == nullptr && to_node_ != nullptr) {
-    delete to_node_;
+  if (GetArenaForAllocation() == nullptr && dest_node_ != nullptr) {
+    delete dest_node_;
   }
-  to_node_ = nullptr;
+  dest_node_ = nullptr;
   timestamp_ = uint64_t{0u};
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -957,10 +957,10 @@ const char* Request::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) 
         } else
           goto handle_unusual;
         continue;
-      // .message.Node to_node = 2;
+      // .message.Node dest_node = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
-          ptr = ctx->ParseMessage(_internal_mutable_to_node(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_dest_node(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1013,11 +1013,11 @@ uint8_t* Request::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt64ToArray(1, this->_internal_timestamp(), target);
   }
 
-  // .message.Node to_node = 2;
-  if (this->_internal_has_to_node()) {
+  // .message.Node dest_node = 2;
+  if (this->_internal_has_dest_node()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(2, _Internal::to_node(this),
-        _Internal::to_node(this).GetCachedSize(), target, stream);
+      InternalWriteMessage(2, _Internal::dest_node(this),
+        _Internal::dest_node(this).GetCachedSize(), target, stream);
   }
 
   // repeated .message.Command commands = 3;
@@ -1051,11 +1051,11 @@ size_t Request::ByteSizeLong() const {
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // .message.Node to_node = 2;
-  if (this->_internal_has_to_node()) {
+  // .message.Node dest_node = 2;
+  if (this->_internal_has_dest_node()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *to_node_);
+        *dest_node_);
   }
 
   // uint64 timestamp = 1;
@@ -1086,8 +1086,8 @@ void Request::MergeFrom(const Request& from) {
   (void) cached_has_bits;
 
   commands_.MergeFrom(from.commands_);
-  if (from._internal_has_to_node()) {
-    _internal_mutable_to_node()->::message::Node::MergeFrom(from._internal_to_node());
+  if (from._internal_has_dest_node()) {
+    _internal_mutable_dest_node()->::message::Node::MergeFrom(from._internal_dest_node());
   }
   if (from._internal_timestamp() != 0) {
     _internal_set_timestamp(from._internal_timestamp());
@@ -1113,9 +1113,9 @@ void Request::InternalSwap(Request* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Request, timestamp_)
       + sizeof(Request::timestamp_)
-      - PROTOBUF_FIELD_OFFSET(Request, to_node_)>(
-          reinterpret_cast<char*>(&to_node_),
-          reinterpret_cast<char*>(&other->to_node_));
+      - PROTOBUF_FIELD_OFFSET(Request, dest_node_)>(
+          reinterpret_cast<char*>(&dest_node_),
+          reinterpret_cast<char*>(&other->dest_node_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Request::GetMetadata() const {

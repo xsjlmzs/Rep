@@ -9,3 +9,7 @@ Server::~Server()
 {
 }
 
+void Server::RunLoop()
+{
+    
+}
