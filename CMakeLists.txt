@@ -20,9 +20,11 @@ add_executable(client cmain.cc
       ./common/common.cc)
 
 add_executable(server smain.cc
+      ./server/server.cc
+      ./server/epoch.cc
       ./common/txn.cc
-      ./common/convert.cc
-      ./common/common.cc)
+      ./common/common.cc
+      ./storage/storage.cc)
 
 target_include_directories(client PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include 
@@ -31,10 +33,11 @@ target_include_directories(client PRIVATE
 
 target_include_directories(server PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include
-      ${PROJECT_SOURCE_DIR}/server}
-      ${PROJECT_SOURCE_DIR}/common)
+      ${PROJECT_SOURCE_DIR}/server
+      ${PROJECT_SOURCE_DIR}/common
+      ${PROJECT_SOURCE_DIR}/storage)
 
-target_link_libraries(client PRIVATE Proto zmqpp zmq)
+target_link_libraries(client PRIVATE Proto pthread zmqpp zmq)
 
 target_link_libraries(server PRIVATE Proto pthread zmqpp zmq)
 

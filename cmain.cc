@@ -5,7 +5,6 @@
 int main(int argc, char const *argv[])
 {
     Client* client = new Client();
-    client->LoadConfig("server_ip.txt", "../conf/");
 
     client->Run();
 

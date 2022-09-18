@@ -45,27 +45,31 @@ struct TableStruct_message_2eproto {
   static const uint32_t offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_message_2eproto;
-namespace message {
+namespace PB {
 class Command;
 struct CommandDefaultTypeInternal;
 extern CommandDefaultTypeInternal _Command_default_instance_;
+class MessageProto;
+struct MessageProtoDefaultTypeInternal;
+extern MessageProtoDefaultTypeInternal _MessageProto_default_instance_;
 class Node;
 struct NodeDefaultTypeInternal;
 extern NodeDefaultTypeInternal _Node_default_instance_;
-class Request;
-struct RequestDefaultTypeInternal;
-extern RequestDefaultTypeInternal _Request_default_instance_;
+class Reply;
+struct ReplyDefaultTypeInternal;
+extern ReplyDefaultTypeInternal _Reply_default_instance_;
 class Txn;
 struct TxnDefaultTypeInternal;
 extern TxnDefaultTypeInternal _Txn_default_instance_;
-}  // namespace message
+}  // namespace PB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::message::Command* Arena::CreateMaybeMessage<::message::Command>(Arena*);
-template<> ::message::Node* Arena::CreateMaybeMessage<::message::Node>(Arena*);
-template<> ::message::Request* Arena::CreateMaybeMessage<::message::Request>(Arena*);
-template<> ::message::Txn* Arena::CreateMaybeMessage<::message::Txn>(Arena*);
+template<> ::PB::Command* Arena::CreateMaybeMessage<::PB::Command>(Arena*);
+template<> ::PB::MessageProto* Arena::CreateMaybeMessage<::PB::MessageProto>(Arena*);
+template<> ::PB::Node* Arena::CreateMaybeMessage<::PB::Node>(Arena*);
+template<> ::PB::Reply* Arena::CreateMaybeMessage<::PB::Reply>(Arena*);
+template<> ::PB::Txn* Arena::CreateMaybeMessage<::PB::Txn>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace message {
+namespace PB {
 
 enum OpType : int {
   INVALID = 0,
@@ -94,10 +98,36 @@ inline bool OpType_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<OpType>(
     OpType_descriptor(), name, value);
 }
+enum MessageType : int {
+  EMPTY = 0,
+  CLIENT_REQUEST = 1,
+  MERGE_REQUEST = 2,
+  MessageType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  MessageType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool MessageType_IsValid(int value);
+constexpr MessageType MessageType_MIN = EMPTY;
+constexpr MessageType MessageType_MAX = MERGE_REQUEST;
+constexpr int MessageType_ARRAYSIZE = MessageType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MessageType_descriptor();
+template<typename T>
+inline const std::string& MessageType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, MessageType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function MessageType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    MessageType_descriptor(), enum_t_value);
+}
+inline bool MessageType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MessageType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MessageType>(
+    MessageType_descriptor(), name, value);
+}
 // ===================================================================
 
 class Node final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.Node) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PB.Node) */ {
  public:
   inline Node() : Node(nullptr) {}
   ~Node() override;
@@ -198,7 +228,7 @@ class Node final :
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.Node";
+    return "PB.Node";
   }
   protected:
   explicit Node(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -241,7 +271,7 @@ class Node final :
   void _internal_set_port(uint32_t value);
   public:
 
-  // @@protoc_insertion_point(class_scope:message.Node)
+  // @@protoc_insertion_point(class_scope:PB.Node)
  private:
   class _Internal;
 
@@ -256,7 +286,7 @@ class Node final :
 // -------------------------------------------------------------------
 
 class Command final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.Command) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PB.Command) */ {
  public:
   inline Command() : Command(nullptr) {}
   ~Command() override;
@@ -357,7 +387,7 @@ class Command final :
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.Command";
+    return "PB.Command";
   }
   protected:
   explicit Command(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -406,16 +436,16 @@ class Command final :
   std::string* _internal_mutable_value();
   public:
 
-  // .message.OpType type = 1;
+  // .PB.OpType type = 1;
   void clear_type();
-  ::message::OpType type() const;
-  void set_type(::message::OpType value);
+  ::PB::OpType type() const;
+  void set_type(::PB::OpType value);
   private:
-  ::message::OpType _internal_type() const;
-  void _internal_set_type(::message::OpType value);
+  ::PB::OpType _internal_type() const;
+  void _internal_set_type(::PB::OpType value);
   public:
 
-  // @@protoc_insertion_point(class_scope:message.Command)
+  // @@protoc_insertion_point(class_scope:PB.Command)
  private:
   class _Internal;
 
@@ -431,7 +461,7 @@ class Command final :
 // -------------------------------------------------------------------
 
 class Txn final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.Txn) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PB.Txn) */ {
  public:
   inline Txn() : Txn(nullptr) {}
   ~Txn() override;
@@ -532,7 +562,7 @@ class Txn final :
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.Txn";
+    return "PB.Txn";
   }
   protected:
   explicit Txn(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -552,22 +582,22 @@ class Txn final :
     kCommandsFieldNumber = 2,
     kTxnIdFieldNumber = 1,
   };
-  // repeated .message.Command commands = 2;
+  // repeated .PB.Command commands = 2;
   int commands_size() const;
   private:
   int _internal_commands_size() const;
   public:
   void clear_commands();
-  ::message::Command* mutable_commands(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >*
+  ::PB::Command* mutable_commands(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Command >*
       mutable_commands();
   private:
-  const ::message::Command& _internal_commands(int index) const;
-  ::message::Command* _internal_add_commands();
+  const ::PB::Command& _internal_commands(int index) const;
+  ::PB::Command* _internal_add_commands();
   public:
-  const ::message::Command& commands(int index) const;
-  ::message::Command* add_commands();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >&
+  const ::PB::Command& commands(int index) const;
+  ::PB::Command* add_commands();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Command >&
       commands() const;
 
   // int64 txn_id = 1;
@@ -579,38 +609,38 @@ class Txn final :
   void _internal_set_txn_id(int64_t value);
   public:
 
-  // @@protoc_insertion_point(class_scope:message.Txn)
+  // @@protoc_insertion_point(class_scope:PB.Txn)
  private:
   class _Internal;
 
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command > commands_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Command > commands_;
   int64_t txn_id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
 // -------------------------------------------------------------------
 
-class Request final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:message.Request) */ {
+class MessageProto final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PB.MessageProto) */ {
  public:
-  inline Request() : Request(nullptr) {}
-  ~Request() override;
-  explicit PROTOBUF_CONSTEXPR Request(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline MessageProto() : MessageProto(nullptr) {}
+  ~MessageProto() override;
+  explicit PROTOBUF_CONSTEXPR MessageProto(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  Request(const Request& from);
-  Request(Request&& from) noexcept
-    : Request() {
+  MessageProto(const MessageProto& from);
+  MessageProto(MessageProto&& from) noexcept
+    : MessageProto() {
     *this = ::std::move(from);
   }
 
-  inline Request& operator=(const Request& from) {
+  inline MessageProto& operator=(const MessageProto& from) {
     CopyFrom(from);
     return *this;
   }
-  inline Request& operator=(Request&& from) noexcept {
+  inline MessageProto& operator=(MessageProto&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -633,20 +663,20 @@ class Request final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const Request& default_instance() {
+  static const MessageProto& default_instance() {
     return *internal_default_instance();
   }
-  static inline const Request* internal_default_instance() {
-    return reinterpret_cast<const Request*>(
-               &_Request_default_instance_);
+  static inline const MessageProto* internal_default_instance() {
+    return reinterpret_cast<const MessageProto*>(
+               &_MessageProto_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     3;
 
-  friend void swap(Request& a, Request& b) {
+  friend void swap(MessageProto& a, MessageProto& b) {
     a.Swap(&b);
   }
-  inline void Swap(Request* other) {
+  inline void Swap(MessageProto* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -659,7 +689,7 @@ class Request final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(Request* other) {
+  void UnsafeArenaSwap(MessageProto* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -667,13 +697,13 @@ class Request final :
 
   // implements Message ----------------------------------------------
 
-  Request* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<Request>(arena);
+  MessageProto* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MessageProto>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const Request& from);
+  void CopyFrom(const MessageProto& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const Request& from);
+  void MergeFrom(const MessageProto& from);
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
   public:
@@ -690,15 +720,15 @@ class Request final :
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(Request* other);
+  void InternalSwap(MessageProto* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "message.Request";
+    return "PB.MessageProto";
   }
   protected:
-  explicit Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit MessageProto(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -712,65 +742,254 @@ class Request final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kCommandsFieldNumber = 3,
-    kDestNodeFieldNumber = 2,
-    kTimestampFieldNumber = 1,
+    kTxnsFieldNumber = 4,
+    kSrcNodeFieldNumber = 2,
+    kDestNodeFieldNumber = 3,
+    kMessageTypeFieldNumber = 1,
   };
-  // repeated .message.Command commands = 3;
-  int commands_size() const;
+  // repeated .PB.Txn txns = 4;
+  int txns_size() const;
   private:
-  int _internal_commands_size() const;
+  int _internal_txns_size() const;
   public:
-  void clear_commands();
-  ::message::Command* mutable_commands(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >*
-      mutable_commands();
+  void clear_txns();
+  ::PB::Txn* mutable_txns(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn >*
+      mutable_txns();
   private:
-  const ::message::Command& _internal_commands(int index) const;
-  ::message::Command* _internal_add_commands();
+  const ::PB::Txn& _internal_txns(int index) const;
+  ::PB::Txn* _internal_add_txns();
   public:
-  const ::message::Command& commands(int index) const;
-  ::message::Command* add_commands();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >&
-      commands() const;
+  const ::PB::Txn& txns(int index) const;
+  ::PB::Txn* add_txns();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn >&
+      txns() const;
 
-  // .message.Node dest_node = 2;
+  // .PB.Node src_node = 2;
+  bool has_src_node() const;
+  private:
+  bool _internal_has_src_node() const;
+  public:
+  void clear_src_node();
+  const ::PB::Node& src_node() const;
+  PROTOBUF_NODISCARD ::PB::Node* release_src_node();
+  ::PB::Node* mutable_src_node();
+  void set_allocated_src_node(::PB::Node* src_node);
+  private:
+  const ::PB::Node& _internal_src_node() const;
+  ::PB::Node* _internal_mutable_src_node();
+  public:
+  void unsafe_arena_set_allocated_src_node(
+      ::PB::Node* src_node);
+  ::PB::Node* unsafe_arena_release_src_node();
+
+  // .PB.Node dest_node = 3;
   bool has_dest_node() const;
   private:
   bool _internal_has_dest_node() const;
   public:
   void clear_dest_node();
-  const ::message::Node& dest_node() const;
-  PROTOBUF_NODISCARD ::message::Node* release_dest_node();
-  ::message::Node* mutable_dest_node();
-  void set_allocated_dest_node(::message::Node* dest_node);
+  const ::PB::Node& dest_node() const;
+  PROTOBUF_NODISCARD ::PB::Node* release_dest_node();
+  ::PB::Node* mutable_dest_node();
+  void set_allocated_dest_node(::PB::Node* dest_node);
   private:
-  const ::message::Node& _internal_dest_node() const;
-  ::message::Node* _internal_mutable_dest_node();
+  const ::PB::Node& _internal_dest_node() const;
+  ::PB::Node* _internal_mutable_dest_node();
   public:
   void unsafe_arena_set_allocated_dest_node(
-      ::message::Node* dest_node);
-  ::message::Node* unsafe_arena_release_dest_node();
+      ::PB::Node* dest_node);
+  ::PB::Node* unsafe_arena_release_dest_node();
 
-  // uint64 timestamp = 1;
-  void clear_timestamp();
-  uint64_t timestamp() const;
-  void set_timestamp(uint64_t value);
+  // .PB.MessageType message_type = 1;
+  void clear_message_type();
+  ::PB::MessageType message_type() const;
+  void set_message_type(::PB::MessageType value);
   private:
-  uint64_t _internal_timestamp() const;
-  void _internal_set_timestamp(uint64_t value);
+  ::PB::MessageType _internal_message_type() const;
+  void _internal_set_message_type(::PB::MessageType value);
   public:
 
-  // @@protoc_insertion_point(class_scope:message.Request)
+  // @@protoc_insertion_point(class_scope:PB.MessageProto)
  private:
   class _Internal;
 
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command > commands_;
-  ::message::Node* dest_node_;
-  uint64_t timestamp_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn > txns_;
+  ::PB::Node* src_node_;
+  ::PB::Node* dest_node_;
+  int message_type_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_message_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Reply final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PB.Reply) */ {
+ public:
+  inline Reply() : Reply(nullptr) {}
+  ~Reply() override;
+  explicit PROTOBUF_CONSTEXPR Reply(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Reply(const Reply& from);
+  Reply(Reply&& from) noexcept
+    : Reply() {
+    *this = ::std::move(from);
+  }
+
+  inline Reply& operator=(const Reply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Reply& operator=(Reply&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Reply& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Reply* internal_default_instance() {
+    return reinterpret_cast<const Reply*>(
+               &_Reply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(Reply& a, Reply& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Reply* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Reply* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Reply* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Reply>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Reply& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Reply& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Reply* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "PB.Reply";
+  }
+  protected:
+  explicit Reply(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kQueryResFieldNumber = 2,
+    kSuccessFieldNumber = 1,
+  };
+  // repeated string query_res = 2;
+  int query_res_size() const;
+  private:
+  int _internal_query_res_size() const;
+  public:
+  void clear_query_res();
+  const std::string& query_res(int index) const;
+  std::string* mutable_query_res(int index);
+  void set_query_res(int index, const std::string& value);
+  void set_query_res(int index, std::string&& value);
+  void set_query_res(int index, const char* value);
+  void set_query_res(int index, const char* value, size_t size);
+  std::string* add_query_res();
+  void add_query_res(const std::string& value);
+  void add_query_res(std::string&& value);
+  void add_query_res(const char* value);
+  void add_query_res(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& query_res() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_query_res();
+  private:
+  const std::string& _internal_query_res(int index) const;
+  std::string* _internal_add_query_res();
+  public:
+
+  // bool success = 1;
+  void clear_success();
+  bool success() const;
+  void set_success(bool value);
+  private:
+  bool _internal_success() const;
+  void _internal_set_success(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:PB.Reply)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> query_res_;
+  bool success_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
@@ -790,7 +1009,7 @@ inline void Node::clear_ip() {
   ip_.ClearToEmpty();
 }
 inline const std::string& Node::ip() const {
-  // @@protoc_insertion_point(field_get:message.Node.ip)
+  // @@protoc_insertion_point(field_get:PB.Node.ip)
   return _internal_ip();
 }
 template <typename ArgT0, typename... ArgT>
@@ -798,11 +1017,11 @@ inline PROTOBUF_ALWAYS_INLINE
 void Node::set_ip(ArgT0&& arg0, ArgT... args) {
  
  ip_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.Node.ip)
+  // @@protoc_insertion_point(field_set:PB.Node.ip)
 }
 inline std::string* Node::mutable_ip() {
   std::string* _s = _internal_mutable_ip();
-  // @@protoc_insertion_point(field_mutable:message.Node.ip)
+  // @@protoc_insertion_point(field_mutable:PB.Node.ip)
   return _s;
 }
 inline const std::string& Node::_internal_ip() const {
@@ -817,7 +1036,7 @@ inline std::string* Node::_internal_mutable_ip() {
   return ip_.Mutable(GetArenaForAllocation());
 }
 inline std::string* Node::release_ip() {
-  // @@protoc_insertion_point(field_release:message.Node.ip)
+  // @@protoc_insertion_point(field_release:PB.Node.ip)
   return ip_.Release();
 }
 inline void Node::set_allocated_ip(std::string* ip) {
@@ -832,7 +1051,7 @@ inline void Node::set_allocated_ip(std::string* ip) {
     ip_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.Node.ip)
+  // @@protoc_insertion_point(field_set_allocated:PB.Node.ip)
 }
 
 // uint32 port = 2;
@@ -843,7 +1062,7 @@ inline uint32_t Node::_internal_port() const {
   return port_;
 }
 inline uint32_t Node::port() const {
-  // @@protoc_insertion_point(field_get:message.Node.port)
+  // @@protoc_insertion_point(field_get:PB.Node.port)
   return _internal_port();
 }
 inline void Node::_internal_set_port(uint32_t value) {
@@ -852,31 +1071,31 @@ inline void Node::_internal_set_port(uint32_t value) {
 }
 inline void Node::set_port(uint32_t value) {
   _internal_set_port(value);
-  // @@protoc_insertion_point(field_set:message.Node.port)
+  // @@protoc_insertion_point(field_set:PB.Node.port)
 }
 
 // -------------------------------------------------------------------
 
 // Command
 
-// .message.OpType type = 1;
+// .PB.OpType type = 1;
 inline void Command::clear_type() {
   type_ = 0;
 }
-inline ::message::OpType Command::_internal_type() const {
-  return static_cast< ::message::OpType >(type_);
+inline ::PB::OpType Command::_internal_type() const {
+  return static_cast< ::PB::OpType >(type_);
 }
-inline ::message::OpType Command::type() const {
-  // @@protoc_insertion_point(field_get:message.Command.type)
+inline ::PB::OpType Command::type() const {
+  // @@protoc_insertion_point(field_get:PB.Command.type)
   return _internal_type();
 }
-inline void Command::_internal_set_type(::message::OpType value) {
+inline void Command::_internal_set_type(::PB::OpType value) {
   
   type_ = value;
 }
-inline void Command::set_type(::message::OpType value) {
+inline void Command::set_type(::PB::OpType value) {
   _internal_set_type(value);
-  // @@protoc_insertion_point(field_set:message.Command.type)
+  // @@protoc_insertion_point(field_set:PB.Command.type)
 }
 
 // string key = 2;
@@ -884,7 +1103,7 @@ inline void Command::clear_key() {
   key_.ClearToEmpty();
 }
 inline const std::string& Command::key() const {
-  // @@protoc_insertion_point(field_get:message.Command.key)
+  // @@protoc_insertion_point(field_get:PB.Command.key)
   return _internal_key();
 }
 template <typename ArgT0, typename... ArgT>
@@ -892,11 +1111,11 @@ inline PROTOBUF_ALWAYS_INLINE
 void Command::set_key(ArgT0&& arg0, ArgT... args) {
  
  key_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.Command.key)
+  // @@protoc_insertion_point(field_set:PB.Command.key)
 }
 inline std::string* Command::mutable_key() {
   std::string* _s = _internal_mutable_key();
-  // @@protoc_insertion_point(field_mutable:message.Command.key)
+  // @@protoc_insertion_point(field_mutable:PB.Command.key)
   return _s;
 }
 inline const std::string& Command::_internal_key() const {
@@ -911,7 +1130,7 @@ inline std::string* Command::_internal_mutable_key() {
   return key_.Mutable(GetArenaForAllocation());
 }
 inline std::string* Command::release_key() {
-  // @@protoc_insertion_point(field_release:message.Command.key)
+  // @@protoc_insertion_point(field_release:PB.Command.key)
   return key_.Release();
 }
 inline void Command::set_allocated_key(std::string* key) {
@@ -926,7 +1145,7 @@ inline void Command::set_allocated_key(std::string* key) {
     key_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.Command.key)
+  // @@protoc_insertion_point(field_set_allocated:PB.Command.key)
 }
 
 // string value = 3;
@@ -934,7 +1153,7 @@ inline void Command::clear_value() {
   value_.ClearToEmpty();
 }
 inline const std::string& Command::value() const {
-  // @@protoc_insertion_point(field_get:message.Command.value)
+  // @@protoc_insertion_point(field_get:PB.Command.value)
   return _internal_value();
 }
 template <typename ArgT0, typename... ArgT>
@@ -942,11 +1161,11 @@ inline PROTOBUF_ALWAYS_INLINE
 void Command::set_value(ArgT0&& arg0, ArgT... args) {
  
  value_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:message.Command.value)
+  // @@protoc_insertion_point(field_set:PB.Command.value)
 }
 inline std::string* Command::mutable_value() {
   std::string* _s = _internal_mutable_value();
-  // @@protoc_insertion_point(field_mutable:message.Command.value)
+  // @@protoc_insertion_point(field_mutable:PB.Command.value)
   return _s;
 }
 inline const std::string& Command::_internal_value() const {
@@ -961,7 +1180,7 @@ inline std::string* Command::_internal_mutable_value() {
   return value_.Mutable(GetArenaForAllocation());
 }
 inline std::string* Command::release_value() {
-  // @@protoc_insertion_point(field_release:message.Command.value)
+  // @@protoc_insertion_point(field_release:PB.Command.value)
   return value_.Release();
 }
 inline void Command::set_allocated_value(std::string* value) {
@@ -976,7 +1195,7 @@ inline void Command::set_allocated_value(std::string* value) {
     value_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:message.Command.value)
+  // @@protoc_insertion_point(field_set_allocated:PB.Command.value)
 }
 
 // -------------------------------------------------------------------
@@ -991,7 +1210,7 @@ inline int64_t Txn::_internal_txn_id() const {
   return txn_id_;
 }
 inline int64_t Txn::txn_id() const {
-  // @@protoc_insertion_point(field_get:message.Txn.txn_id)
+  // @@protoc_insertion_point(field_get:PB.Txn.txn_id)
   return _internal_txn_id();
 }
 inline void Txn::_internal_set_txn_id(int64_t value) {
@@ -1000,10 +1219,10 @@ inline void Txn::_internal_set_txn_id(int64_t value) {
 }
 inline void Txn::set_txn_id(int64_t value) {
   _internal_set_txn_id(value);
-  // @@protoc_insertion_point(field_set:message.Txn.txn_id)
+  // @@protoc_insertion_point(field_set:PB.Txn.txn_id)
 }
 
-// repeated .message.Command commands = 2;
+// repeated .PB.Command commands = 2;
 inline int Txn::_internal_commands_size() const {
   return commands_.size();
 }
@@ -1013,84 +1232,174 @@ inline int Txn::commands_size() const {
 inline void Txn::clear_commands() {
   commands_.Clear();
 }
-inline ::message::Command* Txn::mutable_commands(int index) {
-  // @@protoc_insertion_point(field_mutable:message.Txn.commands)
+inline ::PB::Command* Txn::mutable_commands(int index) {
+  // @@protoc_insertion_point(field_mutable:PB.Txn.commands)
   return commands_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Command >*
 Txn::mutable_commands() {
-  // @@protoc_insertion_point(field_mutable_list:message.Txn.commands)
+  // @@protoc_insertion_point(field_mutable_list:PB.Txn.commands)
   return &commands_;
 }
-inline const ::message::Command& Txn::_internal_commands(int index) const {
+inline const ::PB::Command& Txn::_internal_commands(int index) const {
   return commands_.Get(index);
 }
-inline const ::message::Command& Txn::commands(int index) const {
-  // @@protoc_insertion_point(field_get:message.Txn.commands)
+inline const ::PB::Command& Txn::commands(int index) const {
+  // @@protoc_insertion_point(field_get:PB.Txn.commands)
   return _internal_commands(index);
 }
-inline ::message::Command* Txn::_internal_add_commands() {
+inline ::PB::Command* Txn::_internal_add_commands() {
   return commands_.Add();
 }
-inline ::message::Command* Txn::add_commands() {
-  ::message::Command* _add = _internal_add_commands();
-  // @@protoc_insertion_point(field_add:message.Txn.commands)
+inline ::PB::Command* Txn::add_commands() {
+  ::PB::Command* _add = _internal_add_commands();
+  // @@protoc_insertion_point(field_add:PB.Txn.commands)
   return _add;
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Command >&
 Txn::commands() const {
-  // @@protoc_insertion_point(field_list:message.Txn.commands)
+  // @@protoc_insertion_point(field_list:PB.Txn.commands)
   return commands_;
 }
 
 // -------------------------------------------------------------------
 
-// Request
+// MessageProto
 
-// uint64 timestamp = 1;
-inline void Request::clear_timestamp() {
-  timestamp_ = uint64_t{0u};
+// .PB.MessageType message_type = 1;
+inline void MessageProto::clear_message_type() {
+  message_type_ = 0;
 }
-inline uint64_t Request::_internal_timestamp() const {
-  return timestamp_;
+inline ::PB::MessageType MessageProto::_internal_message_type() const {
+  return static_cast< ::PB::MessageType >(message_type_);
 }
-inline uint64_t Request::timestamp() const {
-  // @@protoc_insertion_point(field_get:message.Request.timestamp)
-  return _internal_timestamp();
+inline ::PB::MessageType MessageProto::message_type() const {
+  // @@protoc_insertion_point(field_get:PB.MessageProto.message_type)
+  return _internal_message_type();
 }
-inline void Request::_internal_set_timestamp(uint64_t value) {
+inline void MessageProto::_internal_set_message_type(::PB::MessageType value) {
   
-  timestamp_ = value;
+  message_type_ = value;
 }
-inline void Request::set_timestamp(uint64_t value) {
-  _internal_set_timestamp(value);
-  // @@protoc_insertion_point(field_set:message.Request.timestamp)
+inline void MessageProto::set_message_type(::PB::MessageType value) {
+  _internal_set_message_type(value);
+  // @@protoc_insertion_point(field_set:PB.MessageProto.message_type)
 }
 
-// .message.Node dest_node = 2;
-inline bool Request::_internal_has_dest_node() const {
+// .PB.Node src_node = 2;
+inline bool MessageProto::_internal_has_src_node() const {
+  return this != internal_default_instance() && src_node_ != nullptr;
+}
+inline bool MessageProto::has_src_node() const {
+  return _internal_has_src_node();
+}
+inline void MessageProto::clear_src_node() {
+  if (GetArenaForAllocation() == nullptr && src_node_ != nullptr) {
+    delete src_node_;
+  }
+  src_node_ = nullptr;
+}
+inline const ::PB::Node& MessageProto::_internal_src_node() const {
+  const ::PB::Node* p = src_node_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PB::Node&>(
+      ::PB::_Node_default_instance_);
+}
+inline const ::PB::Node& MessageProto::src_node() const {
+  // @@protoc_insertion_point(field_get:PB.MessageProto.src_node)
+  return _internal_src_node();
+}
+inline void MessageProto::unsafe_arena_set_allocated_src_node(
+    ::PB::Node* src_node) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(src_node_);
+  }
+  src_node_ = src_node;
+  if (src_node) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:PB.MessageProto.src_node)
+}
+inline ::PB::Node* MessageProto::release_src_node() {
+  
+  ::PB::Node* temp = src_node_;
+  src_node_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PB::Node* MessageProto::unsafe_arena_release_src_node() {
+  // @@protoc_insertion_point(field_release:PB.MessageProto.src_node)
+  
+  ::PB::Node* temp = src_node_;
+  src_node_ = nullptr;
+  return temp;
+}
+inline ::PB::Node* MessageProto::_internal_mutable_src_node() {
+  
+  if (src_node_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PB::Node>(GetArenaForAllocation());
+    src_node_ = p;
+  }
+  return src_node_;
+}
+inline ::PB::Node* MessageProto::mutable_src_node() {
+  ::PB::Node* _msg = _internal_mutable_src_node();
+  // @@protoc_insertion_point(field_mutable:PB.MessageProto.src_node)
+  return _msg;
+}
+inline void MessageProto::set_allocated_src_node(::PB::Node* src_node) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete src_node_;
+  }
+  if (src_node) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(src_node);
+    if (message_arena != submessage_arena) {
+      src_node = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, src_node, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  src_node_ = src_node;
+  // @@protoc_insertion_point(field_set_allocated:PB.MessageProto.src_node)
+}
+
+// .PB.Node dest_node = 3;
+inline bool MessageProto::_internal_has_dest_node() const {
   return this != internal_default_instance() && dest_node_ != nullptr;
 }
-inline bool Request::has_dest_node() const {
+inline bool MessageProto::has_dest_node() const {
   return _internal_has_dest_node();
 }
-inline void Request::clear_dest_node() {
+inline void MessageProto::clear_dest_node() {
   if (GetArenaForAllocation() == nullptr && dest_node_ != nullptr) {
     delete dest_node_;
   }
   dest_node_ = nullptr;
 }
-inline const ::message::Node& Request::_internal_dest_node() const {
-  const ::message::Node* p = dest_node_;
-  return p != nullptr ? *p : reinterpret_cast<const ::message::Node&>(
-      ::message::_Node_default_instance_);
+inline const ::PB::Node& MessageProto::_internal_dest_node() const {
+  const ::PB::Node* p = dest_node_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PB::Node&>(
+      ::PB::_Node_default_instance_);
 }
-inline const ::message::Node& Request::dest_node() const {
-  // @@protoc_insertion_point(field_get:message.Request.dest_node)
+inline const ::PB::Node& MessageProto::dest_node() const {
+  // @@protoc_insertion_point(field_get:PB.MessageProto.dest_node)
   return _internal_dest_node();
 }
-inline void Request::unsafe_arena_set_allocated_dest_node(
-    ::message::Node* dest_node) {
+inline void MessageProto::unsafe_arena_set_allocated_dest_node(
+    ::PB::Node* dest_node) {
   if (GetArenaForAllocation() == nullptr) {
     delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(dest_node_);
   }
@@ -1100,11 +1409,11 @@ inline void Request::unsafe_arena_set_allocated_dest_node(
   } else {
     
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:message.Request.dest_node)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:PB.MessageProto.dest_node)
 }
-inline ::message::Node* Request::release_dest_node() {
+inline ::PB::Node* MessageProto::release_dest_node() {
   
-  ::message::Node* temp = dest_node_;
+  ::PB::Node* temp = dest_node_;
   dest_node_ = nullptr;
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
   auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
@@ -1117,27 +1426,27 @@ inline ::message::Node* Request::release_dest_node() {
 #endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
   return temp;
 }
-inline ::message::Node* Request::unsafe_arena_release_dest_node() {
-  // @@protoc_insertion_point(field_release:message.Request.dest_node)
+inline ::PB::Node* MessageProto::unsafe_arena_release_dest_node() {
+  // @@protoc_insertion_point(field_release:PB.MessageProto.dest_node)
   
-  ::message::Node* temp = dest_node_;
+  ::PB::Node* temp = dest_node_;
   dest_node_ = nullptr;
   return temp;
 }
-inline ::message::Node* Request::_internal_mutable_dest_node() {
+inline ::PB::Node* MessageProto::_internal_mutable_dest_node() {
   
   if (dest_node_ == nullptr) {
-    auto* p = CreateMaybeMessage<::message::Node>(GetArenaForAllocation());
+    auto* p = CreateMaybeMessage<::PB::Node>(GetArenaForAllocation());
     dest_node_ = p;
   }
   return dest_node_;
 }
-inline ::message::Node* Request::mutable_dest_node() {
-  ::message::Node* _msg = _internal_mutable_dest_node();
-  // @@protoc_insertion_point(field_mutable:message.Request.dest_node)
+inline ::PB::Node* MessageProto::mutable_dest_node() {
+  ::PB::Node* _msg = _internal_mutable_dest_node();
+  // @@protoc_insertion_point(field_mutable:PB.MessageProto.dest_node)
   return _msg;
 }
-inline void Request::set_allocated_dest_node(::message::Node* dest_node) {
+inline void MessageProto::set_allocated_dest_node(::PB::Node* dest_node) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   if (message_arena == nullptr) {
     delete dest_node_;
@@ -1154,47 +1463,146 @@ inline void Request::set_allocated_dest_node(::message::Node* dest_node) {
     
   }
   dest_node_ = dest_node;
-  // @@protoc_insertion_point(field_set_allocated:message.Request.dest_node)
+  // @@protoc_insertion_point(field_set_allocated:PB.MessageProto.dest_node)
 }
 
-// repeated .message.Command commands = 3;
-inline int Request::_internal_commands_size() const {
-  return commands_.size();
+// repeated .PB.Txn txns = 4;
+inline int MessageProto::_internal_txns_size() const {
+  return txns_.size();
 }
-inline int Request::commands_size() const {
-  return _internal_commands_size();
+inline int MessageProto::txns_size() const {
+  return _internal_txns_size();
 }
-inline void Request::clear_commands() {
-  commands_.Clear();
+inline void MessageProto::clear_txns() {
+  txns_.Clear();
 }
-inline ::message::Command* Request::mutable_commands(int index) {
-  // @@protoc_insertion_point(field_mutable:message.Request.commands)
-  return commands_.Mutable(index);
+inline ::PB::Txn* MessageProto::mutable_txns(int index) {
+  // @@protoc_insertion_point(field_mutable:PB.MessageProto.txns)
+  return txns_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >*
-Request::mutable_commands() {
-  // @@protoc_insertion_point(field_mutable_list:message.Request.commands)
-  return &commands_;
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn >*
+MessageProto::mutable_txns() {
+  // @@protoc_insertion_point(field_mutable_list:PB.MessageProto.txns)
+  return &txns_;
 }
-inline const ::message::Command& Request::_internal_commands(int index) const {
-  return commands_.Get(index);
+inline const ::PB::Txn& MessageProto::_internal_txns(int index) const {
+  return txns_.Get(index);
 }
-inline const ::message::Command& Request::commands(int index) const {
-  // @@protoc_insertion_point(field_get:message.Request.commands)
-  return _internal_commands(index);
+inline const ::PB::Txn& MessageProto::txns(int index) const {
+  // @@protoc_insertion_point(field_get:PB.MessageProto.txns)
+  return _internal_txns(index);
 }
-inline ::message::Command* Request::_internal_add_commands() {
-  return commands_.Add();
+inline ::PB::Txn* MessageProto::_internal_add_txns() {
+  return txns_.Add();
 }
-inline ::message::Command* Request::add_commands() {
-  ::message::Command* _add = _internal_add_commands();
-  // @@protoc_insertion_point(field_add:message.Request.commands)
+inline ::PB::Txn* MessageProto::add_txns() {
+  ::PB::Txn* _add = _internal_add_txns();
+  // @@protoc_insertion_point(field_add:PB.MessageProto.txns)
   return _add;
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::message::Command >&
-Request::commands() const {
-  // @@protoc_insertion_point(field_list:message.Request.commands)
-  return commands_;
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn >&
+MessageProto::txns() const {
+  // @@protoc_insertion_point(field_list:PB.MessageProto.txns)
+  return txns_;
+}
+
+// -------------------------------------------------------------------
+
+// Reply
+
+// bool success = 1;
+inline void Reply::clear_success() {
+  success_ = false;
+}
+inline bool Reply::_internal_success() const {
+  return success_;
+}
+inline bool Reply::success() const {
+  // @@protoc_insertion_point(field_get:PB.Reply.success)
+  return _internal_success();
+}
+inline void Reply::_internal_set_success(bool value) {
+  
+  success_ = value;
+}
+inline void Reply::set_success(bool value) {
+  _internal_set_success(value);
+  // @@protoc_insertion_point(field_set:PB.Reply.success)
+}
+
+// repeated string query_res = 2;
+inline int Reply::_internal_query_res_size() const {
+  return query_res_.size();
+}
+inline int Reply::query_res_size() const {
+  return _internal_query_res_size();
+}
+inline void Reply::clear_query_res() {
+  query_res_.Clear();
+}
+inline std::string* Reply::add_query_res() {
+  std::string* _s = _internal_add_query_res();
+  // @@protoc_insertion_point(field_add_mutable:PB.Reply.query_res)
+  return _s;
+}
+inline const std::string& Reply::_internal_query_res(int index) const {
+  return query_res_.Get(index);
+}
+inline const std::string& Reply::query_res(int index) const {
+  // @@protoc_insertion_point(field_get:PB.Reply.query_res)
+  return _internal_query_res(index);
+}
+inline std::string* Reply::mutable_query_res(int index) {
+  // @@protoc_insertion_point(field_mutable:PB.Reply.query_res)
+  return query_res_.Mutable(index);
+}
+inline void Reply::set_query_res(int index, const std::string& value) {
+  query_res_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:PB.Reply.query_res)
+}
+inline void Reply::set_query_res(int index, std::string&& value) {
+  query_res_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:PB.Reply.query_res)
+}
+inline void Reply::set_query_res(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  query_res_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:PB.Reply.query_res)
+}
+inline void Reply::set_query_res(int index, const char* value, size_t size) {
+  query_res_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:PB.Reply.query_res)
+}
+inline std::string* Reply::_internal_add_query_res() {
+  return query_res_.Add();
+}
+inline void Reply::add_query_res(const std::string& value) {
+  query_res_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:PB.Reply.query_res)
+}
+inline void Reply::add_query_res(std::string&& value) {
+  query_res_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:PB.Reply.query_res)
+}
+inline void Reply::add_query_res(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  query_res_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:PB.Reply.query_res)
+}
+inline void Reply::add_query_res(const char* value, size_t size) {
+  query_res_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:PB.Reply.query_res)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+Reply::query_res() const {
+  // @@protoc_insertion_point(field_list:PB.Reply.query_res)
+  return query_res_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+Reply::mutable_query_res() {
+  // @@protoc_insertion_point(field_mutable_list:PB.Reply.query_res)
+  return &query_res_;
 }
 
 #ifdef __GNUC__
@@ -1206,17 +1614,24 @@ Request::commands() const {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
-}  // namespace message
+}  // namespace PB
 
 PROTOBUF_NAMESPACE_OPEN
 
-template <> struct is_proto_enum< ::message::OpType> : ::std::true_type {};
+template <> struct is_proto_enum< ::PB::OpType> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::message::OpType>() {
-  return ::message::OpType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::PB::OpType>() {
+  return ::PB::OpType_descriptor();
+}
+template <> struct is_proto_enum< ::PB::MessageType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::PB::MessageType>() {
+  return ::PB::MessageType_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

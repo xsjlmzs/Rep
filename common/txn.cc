@@ -1,24 +1,42 @@
 #include "txn.h"
 
-Txn::Txn(/* args */)
+namespace taas
 {
-}
+    Txn::Txn(PB::MessageProto mp) : mp_(mp)
+    {
+        
+    }   
 
-Txn::~Txn()
-{
-}
+    Txn::~Txn()
+    {
 
-void Txn::set_txn_id(unsigned long long txn_id)
-{
-    txn_id_ = txn_id;
-}
+    }
 
-unsigned long long Txn::get_txn_id() const
-{
-    return txn_id_;
-}
+    void Txn::set_tid(int tid)
+    {
+        tid_ = tid;
+    }
+    int Txn::get_tid()
+    {
+        return tid_;
+    }
 
-void Txn::AddCommand(message::Command cmd)
-{
-    commands_.push_back(cmd);
-}
+    void Txn::set_epoch_no(int epoch_no)
+    {
+        epoch_no_ = epoch_no;
+    }
+    int Txn::get_epoch_tid()
+    {
+        return epoch_no_;
+    }
+
+    void Txn::set_mp(PB::MessageProto mp)
+    {
+        mp_ = mp;
+    }
+    PB::MessageProto Txn::get_mp()
+    {
+        return mp_;
+    }
+
+} // namespace taas

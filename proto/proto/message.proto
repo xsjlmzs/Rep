@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package message;
+package PB;
 
 message Node {
     string ip = 1;
@@ -14,6 +14,12 @@ enum OpType {
     DELETE = 3; // not used
 }
 
+enum MessageType {
+    EMPTY = 0;
+    CLIENT_REQUEST = 1;
+    MERGE_REQUEST = 2;
+}
+
 message Command {
     OpType type = 1;
     
@@ -23,18 +29,25 @@ message Command {
 }
 
 message Txn {
-    // transaction id
+    // not used;
     int64 txn_id = 1;
     
     repeated Command commands = 2;
 }
 
-message Request {
+message MessageProto {
+    MessageType message_type = 1;
     
-    uint64 timestamp = 1;
+    Node src_node = 2;
 
-    Node dest_node = 2;
+    Node dest_node = 3;
 
-    repeated Command commands = 3;
+    repeated Txn txns = 4;
 
+}
+
+message Reply {
+    bool success = 1;
+    
+    repeated string query_res = 2;
 }

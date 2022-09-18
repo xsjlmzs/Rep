@@ -1,21 +1,33 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <vector>
 #include <string>
 
 #include "common.h"
+#include "epoch.h"
+#include "storage.h"
+#include "txn.h"
 
-class Server
+namespace taas
 {
-private:
-    Node node;
+    class Server
+    {
+    private:
+        // list of servers
+        Configuration* config_;
+        Connection* conn_;
+        EpochManager* epoch_manager_;
+        Storage* storage_;
 
-    // 获得client的request
-    void RunLoop();
-public:
-    Server(/* args */);
-    ~Server();
-};
+        uint64_t GenerateTid();
+        void Execute(Txn* txn, PB::Reply* reply);
+    public:
+        Server(Configuration* config, Connection* conn);
+        ~Server();
+        void Run();
+    };
+} // namespace tass
 
 
 
