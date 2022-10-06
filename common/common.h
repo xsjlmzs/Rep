@@ -71,17 +71,16 @@ public:
     ~Connection();
 
     // void Run();
-    bool GetMessage(PB::MessageProto* m); // non-blocking
     void ListenClientThread();
     void ListenRemoteThread();
 
-    std::queue<PB::MessageProto> client_reqs_;
-    std::queue<PB::MessageProto> merge_reqs_;
-    std::queue<PB::Reply> replies_;
+    std::queue<PB::ClientRequest> client_reqs_;
+    std::queue<PB::MergeRequest> merge_reqs_;
+    std::queue<PB::ClientReply> replies_;
 };
 
 std::vector<std::string> split(const std::string&, char);
-PB::Command PackCommand(std::string, std::string, std::string);
+PB::Command PackCommand(const std::string&, const std::string&, const std::string&);
 PB::OpType GetOpType(const std::string&);
 bool OpenFile(const std::string&, std::ifstream&);
 

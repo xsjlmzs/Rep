@@ -5,21 +5,28 @@
 
 namespace taas
 {
+    enum TxnStatus 
+    {
+        kPending = 0,
+        kAbort = 1,
+        kCommit =2,
+    };
     class Txn
     {
     private:
         uint64_t tid_;
-        int epoch_no_;
-        PB::MessageProto  mp_;
+        int start_epoch_no_;
+        int commit_epoch_no;
     public:
-        Txn(PB::MessageProto mp);
+        Txn(uint64_t tid, int start_epoch_no, const PB::Txn& txn);
         ~Txn();
         void set_tid(int tid);
         int get_tid();
-        void set_epoch_no(int epoch_no);
+        void set_start_epoch_no(int start_epoch_no);
         int get_epoch_tid();
-        void set_mp(PB::MessageProto mp);
-        PB::MessageProto get_mp();
+
+        TxnStatus status_;
+        PB::Txn pb_txn_;
     };
 } // namespace taas
 

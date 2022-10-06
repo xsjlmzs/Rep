@@ -21,7 +21,7 @@ public:
 
     void SendRawCmd(const std::vector<std::vector<std::string>>& commands);
 
-    void SendMessageProto(PB::MessageProto m);
+    void SendClientRequest(const PB::Txn& txn);
 
     void LoadConfig(std::string filename);
 };

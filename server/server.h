@@ -21,7 +21,7 @@ namespace taas
         Storage* storage_;
 
         uint64_t GenerateTid();
-        void Execute(Txn* txn, PB::Reply* reply);
+        void Execute(const Txn& txn, PB::ClientReply* reply);
     public:
         Server(Configuration* config, Connection* conn);
         ~Server();

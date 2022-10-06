@@ -24,15 +24,14 @@ namespace taas
         return (ms << 2) + static_cast<uint64_t>(config_->node_id_);
     }
 
-    void Server::Execute(Txn* txn, PB::Reply* reply)
+    void Server::Execute(const Txn& txn, PB::ClientReply* reply)
     {
-        for (size_t i = 0; i < txn->get_mp().txns(0).commands().size(); i++)
+        for (auto && cmd : txn.pb_txn_.commands())
         {
-            const PB::Command cmd = txn->get_mp().txns(0).commands(i);
             if (cmd.type() == PB::OpType::GET)
             {
                 std::string value = storage_->get(cmd.key());
-                reply->add_query_res(value.c_str());
+                reply->add_query_set(value.c_str());
             }
             else if (cmd.type() == PB::OpType::PUT)
             {
@@ -48,17 +47,15 @@ namespace taas
             if (!conn_->client_reqs_.empty())
             {
                 XLOGI("server has received a request\n");
-                PB::MessageProto mp = conn_->client_reqs_.front();
+                PB::ClientRequest cr = conn_->client_reqs_.front();
                 conn_->client_reqs_.pop();
-                int epoch_no = epoch_manager_->GetPhysicalEpoch();
+                int start_epoch_no = epoch_manager_->GetPhysicalEpoch();
                 uint64_t tid = GenerateTid();
-                Txn* txn = new Txn(mp);
-                
-                txn->set_epoch_no(epoch_no);
-                txn->set_tid(tid);
-                PB::Reply reply;
+                Txn txn = Txn(tid, start_epoch_no, cr.txn());
+                // receive a client request and pack to txn
+
+                PB::ClientReply reply;
                 Execute(txn, &reply);
-                delete txn;
                 conn_->replies_.push(reply);
             }
         }

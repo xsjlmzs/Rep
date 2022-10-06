@@ -14,11 +14,11 @@ enum OpType {
     DELETE = 3; // not used
 }
 
-enum MessageType {
-    EMPTY = 0;
-    CLIENT_REQUEST = 1;
-    MERGE_REQUEST = 2;
-}
+// enum MessageType {
+//     EMPTY = 0;
+//     CLIENT_REQUEST = 1;
+//     MERGE_REQUEST = 2;
+// }
 
 message Command {
     OpType type = 1;
@@ -35,8 +35,14 @@ message Txn {
     repeated Command commands = 2;
 }
 
-message MessageProto {
-    MessageType message_type = 1;
+message ClientRequest {
+
+    Node dest_node = 1;
+
+    Txn txn = 2;
+}
+
+message MergeRequest {
     
     Node src_node = 2;
 
@@ -46,8 +52,8 @@ message MessageProto {
 
 }
 
-message Reply {
-    bool success = 1;
-    
-    repeated string query_res = 2;
+message ClientReply {
+    bool exec_res = 1;
+
+    repeated string query_set = 2;
 }

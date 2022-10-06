@@ -14,15 +14,13 @@ Client::~Client()
     client_socket_->close();
 }
 
-PB::MessageProto CmdToMsgProto(const std::vector<std::vector<std::string>>& cmds)
+PB::Txn CmdsToTxn(const std::vector<std::vector<std::string>>& cmds)
 {
     static int counter = 0;
-    PB::MessageProto m;
-    m.set_message_type(PB::CLIENT_REQUEST);
-    PB::Txn* txn = m.add_txns();
+    PB::Txn txn;
     for (const std::vector<std::string> &cmd : cmds)
     {
-        PB::Command* msg_cmd = txn->add_commands();
+        PB::Command* msg_cmd = txn.add_commands();
         if (cmd[0] == "GET")
         {
             msg_cmd->set_type(PB::OpType::GET);
@@ -40,8 +38,8 @@ PB::MessageProto CmdToMsgProto(const std::vector<std::vector<std::string>>& cmds
             continue;
         }
     }
-    txn->set_txn_id(counter++);
-    return m;
+    txn.set_txn_id(counter++);
+    return txn;
 }
 
 void Client::Run() 
@@ -102,8 +100,8 @@ void Client::Run()
 
         if (!in_txn)
         {
-            PB::MessageProto&& mp = CmdToMsgProto(commands);
-            SendMessageProto(mp);
+            PB::Txn&& txn = CmdsToTxn(commands);
+            SendClientRequest(txn);
             commands.clear();
         }
     }
@@ -115,11 +113,14 @@ void Client::SendRawCmd(const std::vector<std::vector<std::string>>& commands)
     
 }
 
-void Client::SendMessageProto(PB::MessageProto m)
+void Client::SendClientRequest(const PB::Txn& txn)
 {
-
-    std::string str_txn;
-    m.SerializeToString(&str_txn);
+    PB::ClientRequest cr;
+    cr.mutable_txn()->CopyFrom(txn);
+    
+    
+    std::string str_cr;
+    cr.SerializeToString(&str_cr);
 
     zmqpp::endpoint_t target_endpoint = servers_[0].GetSocket();
 
@@ -128,7 +129,7 @@ void Client::SendMessageProto(PB::MessageProto m)
     client_socket_->connect("tcp://" + target_endpoint);
 
     zmqpp::message req;
-    req << str_txn;
+    req << str_cr;
     client_socket_->send(req);
     
     // receive response
@@ -137,18 +138,17 @@ void Client::SendMessageProto(PB::MessageProto m)
     client_socket_->receive(resp);
     std::string str_resp;
     resp >> str_resp;
-    PB::Reply reply;
+    PB::ClientReply reply;
     reply.ParseFromString(str_resp);
-    if (reply.success())
+
+    if (reply.exec_res())
     {
         std::cout << "operate successfully" << std::endl;
     }
-    for (auto &&i : reply.query_res())
+    for (auto &&i : reply.query_set())
     {
         std::cout << i << std::endl;
     }
-    
-    
 }
 
 void Client::LoadConfig(std::string filename)

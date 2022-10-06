@@ -4,14 +4,6 @@
 
 #include "common.h"
 
-PB::MessageProto ZmqMsgToMsgProto(zmqpp::message& msg) {
-    std::string str_msg;
-    msg >> str_msg;
-    PB::MessageProto mp;
-    mp.ParseFromString(str_msg);
-    return mp;
-}
-
 std::vector<std::string> split(const std::string &str, char delim) {
         std::stringstream ss(str);
         std::string item;
@@ -22,7 +14,7 @@ std::vector<std::string> split(const std::string &str, char delim) {
         return elems;
 }
 
-PB::Command PackCommand(std::string op, std::string key, std::string value) {
+PB::Command PackCommand(const std::string& op, const std::string& key, const std::string& value) {
     PB::OpType op_type = GetOpType(op);
 
     PB::Command command;
@@ -137,42 +129,35 @@ Connection::~Connection() {
     }
 }
 
-
-bool Connection::GetMessage(PB::MessageProto* m) {
-    zmqpp::message msg;
-    if (remote_in_->receive(msg, true)) {
-        std::string str_msg;
-        msg >> str_msg;
-        m->ParseFromString(str_msg);
-        return true;
-    } else {
-        return false;
-    }
+PB::ClientRequest ZmqMsgToClientRequest(zmqpp::message& msg)
+{
+    std::string str_msg;
+    msg >> str_msg;
+    PB::ClientRequest cr;
+    cr.ParseFromString(str_msg);
+    return cr;
 }
 
 void Connection::ListenClientThread() {
     while (!deconstructor_invoked_) {
         zmqpp::message msg;
         if (client_resp_->receive(msg, false)) {
-            PB::MessageProto mp = ZmqMsgToMsgProto(msg);
-            if (mp.message_type() == PB::CLIENT_REQUEST) {
-                XLOGI("Connection has received a client request\n");
-                client_reqs_.push(mp);
-                while (true)
+            PB::ClientRequest cr = ZmqMsgToClientRequest(msg);
+            XLOGI("Connection has received a client request\n");
+            client_reqs_.push(cr);
+            while (true)
+            {
+                if(!replies_.empty())
                 {
-                    if(!replies_.empty())
-                    {
-                        PB::Reply reply = replies_.front();
-                        replies_.pop();
-                        std::string str_reply;
-                        reply.SerializeToString(&str_reply);
-                        zmqpp::message msg(str_reply);
-                        client_resp_->send(msg);
-                        break;
-                    }
+                    PB::ClientReply reply = replies_.front();
+                    // std::cout << "query res =  " << reply.query_set().size() << std::endl;
+                    replies_.pop();
+                    std::string str_reply;
+                    reply.SerializeToString(&str_reply);
+                    zmqpp::message msg(str_reply);
+                    client_resp_->send(msg);
+                    break;
                 }
-            } else {
-                XLOGI("receive other message\n");
             }
         }
     }
@@ -182,12 +167,7 @@ void Connection::ListenRemoteThread() {
     while (!deconstructor_invoked_) {
         zmqpp::message msg;
         if (remote_in_->receive(msg, false)) {
-            PB::MessageProto&& mp = ZmqMsgToMsgProto(msg);
-            if (mp.message_type() == PB::MERGE_REQUEST) {
-                merge_reqs_.push(mp);
-            } else {
-                XLOGI("receive other message\n");
-            }
+
         }
     }
 }
