@@ -17,14 +17,16 @@ add_subdirectory(proto)
 
 add_executable(client cmain.cc 
       ./client/client.cc
-      ./common/common.cc)
+      ./common/common.cc
+      ./common/utils.cc)
 
 add_executable(server smain.cc
       ./server/server.cc
       ./server/epoch.cc
       ./common/txn.cc
       ./common/common.cc
-      ./storage/storage.cc)
+      ./storage/storage.cc
+      ./common/utils.cc)
 
 target_include_directories(client PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include 
@@ -37,9 +39,9 @@ target_include_directories(server PRIVATE
       ${PROJECT_SOURCE_DIR}/common
       ${PROJECT_SOURCE_DIR}/storage)
 
-target_link_libraries(client PRIVATE Proto pthread zmqpp zmq)
+target_link_libraries(client PRIVATE Proto pthread zmqpp zmq glog)
 
-target_link_libraries(server PRIVATE Proto pthread zmqpp zmq)
+target_link_libraries(server PRIVATE Proto pthread zmqpp zmq glog)
 
 # 编译器警告信息flag
 set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")

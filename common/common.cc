@@ -95,10 +95,11 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     remote_in_->bind(remote_endpoint);
 
     // port listen for client request 
-    client_port_ = 9999;
-    client_resp_ = new zmqpp::socket(cxt_, zmqpp::socket_type::reply);
-    std::string client_endpoint = "tcp://*:" + std::to_string(client_port_);
-    client_resp_->bind(client_endpoint);
+    // client_port_ = 9999;
+    // client_resp_ = new zmqpp::socket(cxt_, zmqpp::socket_type::reply);
+    // std::string client_endpoint = "tcp://*:" + std::to_string(client_port_);
+    // client_resp_->bind(client_endpoint);
+
     // build socket
     send_mutex_ = new std::mutex[config_->all_nodes_.size()];
     for (std::map<int, Node*>::const_iterator it = config->all_nodes_.begin();
@@ -110,14 +111,14 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
         }
     }
 
-    // start listen thread main
-    std::thread listen_thread(&Connection::ListenClientThread, this);
-    listen_thread.detach();
-    listen_thread_id_ = listen_thread.get_id();
+    thread_ = std::thread(&Connection::Run, this);
+    return ;
 }
 
 Connection::~Connection() {
     deconstructor_invoked_ = true;
+
+    thread_.join();
 
     remote_in_->close();
     delete remote_in_;
@@ -127,6 +128,136 @@ Connection::~Connection() {
         it->second->close();
         delete it->second;
     }
+
+    channel_results_.Destroy();
+}
+
+void Connection::NewChannel(std::string channel)
+{
+    new_channel_queue_->Push(channel);
+    while (channel_results_.Count(channel) == 0)
+    {
+        usleep(100);
+    }
+}
+
+void Connection::DeleteChannel(std::string channel)
+{
+    delete_channel_queue_->Push(channel);
+    while(channel_results_.Count(channel) != 0)
+    {
+        usleep(100);
+    }
+}
+
+void Connection::Run()
+{
+    std::string new_channel;
+    zmqpp::message_t msg;
+    while (!deconstructor_invoked_)
+    {
+        // new channel
+        while (new_channel_queue_->Pop(&new_channel))
+        {
+            if (channel_results_.Count(new_channel) > 0)
+            {
+                // have existed channel
+                continue;
+            }
+            
+            AtomicQueue<PB::MessageProto>* channel_queue = new AtomicQueue<PB::MessageProto>();
+
+            for (std::vector<PB::MessageProto>::iterator iter = undelivered_messages_[new_channel].begin();
+                iter < undelivered_messages_[new_channel].end(); ++iter)
+            {
+                channel_queue->Push(*iter);
+            }
+            undelivered_messages_.erase(new_channel);
+            channel_results_.Put(new_channel, channel_queue);
+        }
+
+        // delete channel
+        while (delete_channel_queue_->Pop(&new_channel))
+        {
+            if (channel_results_.Count(new_channel) == 0)
+            {
+                continue;
+            }
+            delete channel_results_.Lookup(new_channel);
+            channel_results_.Erase(new_channel);
+            
+        }
+        
+        // recv msg
+        if (remote_in_->receive(msg, false))
+        {
+            PB::MessageProto mp;
+            std::string msg_str;
+            msg >> msg_str;
+            mp.ParseFromString(msg_str);
+
+            if (channel_results_.Count(mp.dest_channel()) == 0)
+            {
+                // haven't existed channel
+                undelivered_messages_[mp.dest_channel()].push_back(mp);
+            }
+            else
+            {
+                channel_results_.Lookup(mp.dest_channel())->Push(mp);
+            }
+        }
+
+        // send msg
+        PB::MessageProto mp;
+        if (send_message_queue_->Pop(&mp))
+        {
+            if (mp.dest_node_id() == config_->node_id_)
+            {
+                if (channel_results_.Count(mp.dest_channel()) == 0)
+                {
+                    undelivered_messages_[mp.dest_channel()].push_back(mp);
+                }
+                else
+                {
+                    channel_results_.Lookup(mp.dest_channel())->Push(mp);
+                }
+            }
+            else
+            {
+                std::string mp_str;
+                mp.SerializeToString(&mp_str);
+                msg << mp_str;
+                remote_out_[mp.dest_node_id()]->send(msg, false);
+            }
+            
+        }
+        
+    }
+    
+}
+
+bool Connection::GetMessage(const std::string& channel, PB::MessageProto* msg)
+{
+    if (channel_results_.Count(channel) == 0)
+    {
+        msg = nullptr;
+        return false;
+    }
+    if (channel_results_.Lookup(channel)->Pop(msg))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void Connection::Send(const PB::MessageProto& msg)
+{
+    PB::MessageProto mp;
+    mp.CopyFrom(msg);
+    send_message_queue_->Push(mp);
 }
 
 PB::ClientRequest ZmqMsgToClientRequest(zmqpp::message& msg)

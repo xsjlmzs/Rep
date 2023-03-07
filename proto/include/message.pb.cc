@@ -75,20 +75,22 @@ struct ClientRequestDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientRequestDefaultTypeInternal _ClientRequest_default_instance_;
-PROTOBUF_CONSTEXPR MergeRequest::MergeRequest(
+PROTOBUF_CONSTEXPR MessageProto::MessageProto(
     ::_pbi::ConstantInitialized)
   : txns_()
-  , src_node_(nullptr)
-  , dest_node_(nullptr){}
-struct MergeRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR MergeRequestDefaultTypeInternal()
+  , src_channel_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , dest_channel_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , src_node_id_(0u)
+  , dest_node_id_(0u){}
+struct MessageProtoDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MessageProtoDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~MergeRequestDefaultTypeInternal() {}
+  ~MessageProtoDefaultTypeInternal() {}
   union {
-    MergeRequest _instance;
+    MessageProto _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MergeRequestDefaultTypeInternal _MergeRequest_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MessageProtoDefaultTypeInternal _MessageProto_default_instance_;
 PROTOBUF_CONSTEXPR ClientReply::ClientReply(
     ::_pbi::ConstantInitialized)
   : query_set_()
@@ -142,14 +144,16 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::PB::ClientRequest, dest_node_),
   PROTOBUF_FIELD_OFFSET(::PB::ClientRequest, txn_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::PB::MergeRequest, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::PB::MergeRequest, src_node_),
-  PROTOBUF_FIELD_OFFSET(::PB::MergeRequest, dest_node_),
-  PROTOBUF_FIELD_OFFSET(::PB::MergeRequest, txns_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, src_node_id_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, src_channel_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, dest_node_id_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, dest_channel_),
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, txns_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::PB::ClientReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -164,8 +168,8 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 8, -1, -1, sizeof(::PB::Command)},
   { 17, -1, -1, sizeof(::PB::Txn)},
   { 25, -1, -1, sizeof(::PB::ClientRequest)},
-  { 33, -1, -1, sizeof(::PB::MergeRequest)},
-  { 42, -1, -1, sizeof(::PB::ClientReply)},
+  { 33, -1, -1, sizeof(::PB::MessageProto)},
+  { 44, -1, -1, sizeof(::PB::ClientReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -173,7 +177,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::PB::_Command_default_instance_._instance,
   &::PB::_Txn_default_instance_._instance,
   &::PB::_ClientRequest_default_instance_._instance,
-  &::PB::_MergeRequest_default_instance_._instance,
+  &::PB::_MessageProto_default_instance_._instance,
   &::PB::_ClientReply_default_instance_._instance,
 };
 
@@ -184,16 +188,16 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\n\003Txn\022\016\n\006txn_id\030\001 \001(\003\022\035\n\010commands\030\002 \003(\0132"
   "\013.PB.Command\"B\n\rClientRequest\022\033\n\tdest_no"
   "de\030\001 \001(\0132\010.PB.Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn"
-  "\"^\n\014MergeRequest\022\032\n\010src_node\030\002 \001(\0132\010.PB."
-  "Node\022\033\n\tdest_node\030\003 \001(\0132\010.PB.Node\022\025\n\004txn"
-  "s\030\004 \003(\0132\007.PB.Txn\"2\n\013ClientReply\022\020\n\010exec_"
-  "res\030\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpType\022\013"
-  "\n\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020"
-  "\003b\006proto3"
+  "\"{\n\014MessageProto\022\023\n\013src_node_id\030\001 \001(\r\022\023\n"
+  "\013src_channel\030\002 \001(\t\022\024\n\014dest_node_id\030\003 \001(\r"
+  "\022\024\n\014dest_channel\030\004 \001(\t\022\025\n\004txns\030\005 \003(\0132\007.P"
+  "B.Txn\"2\n\013ClientReply\022\020\n\010exec_res\030\001 \001(\010\022\021"
+  "\n\tquery_set\030\002 \003(\t*3\n\006OpType\022\013\n\007INVALID\020\000"
+  "\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 449, descriptor_table_protodef_message_2eproto,
+    false, false, 478, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 6,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -1158,53 +1162,60 @@ void ClientRequest::InternalSwap(ClientRequest* other) {
 
 // ===================================================================
 
-class MergeRequest::_Internal {
+class MessageProto::_Internal {
  public:
-  static const ::PB::Node& src_node(const MergeRequest* msg);
-  static const ::PB::Node& dest_node(const MergeRequest* msg);
 };
 
-const ::PB::Node&
-MergeRequest::_Internal::src_node(const MergeRequest* msg) {
-  return *msg->src_node_;
-}
-const ::PB::Node&
-MergeRequest::_Internal::dest_node(const MergeRequest* msg) {
-  return *msg->dest_node_;
-}
-MergeRequest::MergeRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+MessageProto::MessageProto(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned),
   txns_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(arena_constructor:PB.MergeRequest)
+  // @@protoc_insertion_point(arena_constructor:PB.MessageProto)
 }
-MergeRequest::MergeRequest(const MergeRequest& from)
+MessageProto::MessageProto(const MessageProto& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       txns_(from.txns_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  if (from._internal_has_src_node()) {
-    src_node_ = new ::PB::Node(*from.src_node_);
-  } else {
-    src_node_ = nullptr;
+  src_channel_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    src_channel_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_src_channel().empty()) {
+    src_channel_.Set(from._internal_src_channel(), 
+      GetArenaForAllocation());
   }
-  if (from._internal_has_dest_node()) {
-    dest_node_ = new ::PB::Node(*from.dest_node_);
-  } else {
-    dest_node_ = nullptr;
+  dest_channel_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    dest_channel_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_dest_channel().empty()) {
+    dest_channel_.Set(from._internal_dest_channel(), 
+      GetArenaForAllocation());
   }
-  // @@protoc_insertion_point(copy_constructor:PB.MergeRequest)
+  ::memcpy(&src_node_id_, &from.src_node_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&dest_node_id_) -
+    reinterpret_cast<char*>(&src_node_id_)) + sizeof(dest_node_id_));
+  // @@protoc_insertion_point(copy_constructor:PB.MessageProto)
 }
 
-inline void MergeRequest::SharedCtor() {
+inline void MessageProto::SharedCtor() {
+src_channel_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  src_channel_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+dest_channel_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  dest_channel_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&src_node_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&dest_node_) -
-    reinterpret_cast<char*>(&src_node_)) + sizeof(dest_node_));
+    reinterpret_cast<char*>(&src_node_id_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&dest_node_id_) -
+    reinterpret_cast<char*>(&src_node_id_)) + sizeof(dest_node_id_));
 }
 
-MergeRequest::~MergeRequest() {
-  // @@protoc_insertion_point(destructor:PB.MergeRequest)
+MessageProto::~MessageProto() {
+  // @@protoc_insertion_point(destructor:PB.MessageProto)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -1212,66 +1223,83 @@ MergeRequest::~MergeRequest() {
   SharedDtor();
 }
 
-inline void MergeRequest::SharedDtor() {
+inline void MessageProto::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  if (this != internal_default_instance()) delete src_node_;
-  if (this != internal_default_instance()) delete dest_node_;
+  src_channel_.Destroy();
+  dest_channel_.Destroy();
 }
 
-void MergeRequest::SetCachedSize(int size) const {
+void MessageProto::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 
-void MergeRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:PB.MergeRequest)
+void MessageProto::Clear() {
+// @@protoc_insertion_point(message_clear_start:PB.MessageProto)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   txns_.Clear();
-  if (GetArenaForAllocation() == nullptr && src_node_ != nullptr) {
-    delete src_node_;
-  }
-  src_node_ = nullptr;
-  if (GetArenaForAllocation() == nullptr && dest_node_ != nullptr) {
-    delete dest_node_;
-  }
-  dest_node_ = nullptr;
+  src_channel_.ClearToEmpty();
+  dest_channel_.ClearToEmpty();
+  ::memset(&src_node_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&dest_node_id_) -
+      reinterpret_cast<char*>(&src_node_id_)) + sizeof(dest_node_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* MergeRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* MessageProto::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .PB.Node src_node = 2;
+      // uint32 src_node_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          src_node_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string src_channel = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
-          ptr = ctx->ParseMessage(_internal_mutable_src_node(), ptr);
+          auto str = _internal_mutable_src_channel();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "PB.MessageProto.src_channel"));
         } else
           goto handle_unusual;
         continue;
-      // .PB.Node dest_node = 3;
+      // uint32 dest_node_id = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          ptr = ctx->ParseMessage(_internal_mutable_dest_node(), ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          dest_node_id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // repeated .PB.Txn txns = 4;
+      // string dest_channel = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_dest_channel();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "PB.MessageProto.dest_channel"));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .PB.Txn txns = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
           ptr -= 1;
           do {
             ptr += 1;
             ptr = ctx->ParseMessage(_internal_add_txns(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<42>(ptr));
         } else
           goto handle_unusual;
         continue;
@@ -1298,127 +1326,171 @@ failure:
 #undef CHK_
 }
 
-uint8_t* MergeRequest::_InternalSerialize(
+uint8_t* MessageProto::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:PB.MergeRequest)
+  // @@protoc_insertion_point(serialize_to_array_start:PB.MessageProto)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .PB.Node src_node = 2;
-  if (this->_internal_has_src_node()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(2, _Internal::src_node(this),
-        _Internal::src_node(this).GetCachedSize(), target, stream);
+  // uint32 src_node_id = 1;
+  if (this->_internal_src_node_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(1, this->_internal_src_node_id(), target);
   }
 
-  // .PB.Node dest_node = 3;
-  if (this->_internal_has_dest_node()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(3, _Internal::dest_node(this),
-        _Internal::dest_node(this).GetCachedSize(), target, stream);
+  // string src_channel = 2;
+  if (!this->_internal_src_channel().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_src_channel().data(), static_cast<int>(this->_internal_src_channel().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "PB.MessageProto.src_channel");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_src_channel(), target);
   }
 
-  // repeated .PB.Txn txns = 4;
+  // uint32 dest_node_id = 3;
+  if (this->_internal_dest_node_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(3, this->_internal_dest_node_id(), target);
+  }
+
+  // string dest_channel = 4;
+  if (!this->_internal_dest_channel().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_dest_channel().data(), static_cast<int>(this->_internal_dest_channel().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "PB.MessageProto.dest_channel");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_dest_channel(), target);
+  }
+
+  // repeated .PB.Txn txns = 5;
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_txns_size()); i < n; i++) {
     const auto& repfield = this->_internal_txns(i);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(4, repfield, repfield.GetCachedSize(), target, stream);
+        InternalWriteMessage(5, repfield, repfield.GetCachedSize(), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:PB.MergeRequest)
+  // @@protoc_insertion_point(serialize_to_array_end:PB.MessageProto)
   return target;
 }
 
-size_t MergeRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:PB.MergeRequest)
+size_t MessageProto::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:PB.MessageProto)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .PB.Txn txns = 4;
+  // repeated .PB.Txn txns = 5;
   total_size += 1UL * this->_internal_txns_size();
   for (const auto& msg : this->txns_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // .PB.Node src_node = 2;
-  if (this->_internal_has_src_node()) {
+  // string src_channel = 2;
+  if (!this->_internal_src_channel().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *src_node_);
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_src_channel());
   }
 
-  // .PB.Node dest_node = 3;
-  if (this->_internal_has_dest_node()) {
+  // string dest_channel = 4;
+  if (!this->_internal_dest_channel().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *dest_node_);
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_dest_channel());
+  }
+
+  // uint32 src_node_id = 1;
+  if (this->_internal_src_node_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_src_node_id());
+  }
+
+  // uint32 dest_node_id = 3;
+  if (this->_internal_dest_node_id() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_dest_node_id());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MergeRequest::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MessageProto::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
-    MergeRequest::MergeImpl
+    MessageProto::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MergeRequest::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MessageProto::GetClassData() const { return &_class_data_; }
 
-void MergeRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+void MessageProto::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
                       const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<MergeRequest *>(to)->MergeFrom(
-      static_cast<const MergeRequest &>(from));
+  static_cast<MessageProto *>(to)->MergeFrom(
+      static_cast<const MessageProto &>(from));
 }
 
 
-void MergeRequest::MergeFrom(const MergeRequest& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:PB.MergeRequest)
+void MessageProto::MergeFrom(const MessageProto& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:PB.MessageProto)
   GOOGLE_DCHECK_NE(&from, this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   txns_.MergeFrom(from.txns_);
-  if (from._internal_has_src_node()) {
-    _internal_mutable_src_node()->::PB::Node::MergeFrom(from._internal_src_node());
+  if (!from._internal_src_channel().empty()) {
+    _internal_set_src_channel(from._internal_src_channel());
   }
-  if (from._internal_has_dest_node()) {
-    _internal_mutable_dest_node()->::PB::Node::MergeFrom(from._internal_dest_node());
+  if (!from._internal_dest_channel().empty()) {
+    _internal_set_dest_channel(from._internal_dest_channel());
+  }
+  if (from._internal_src_node_id() != 0) {
+    _internal_set_src_node_id(from._internal_src_node_id());
+  }
+  if (from._internal_dest_node_id() != 0) {
+    _internal_set_dest_node_id(from._internal_dest_node_id());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void MergeRequest::CopyFrom(const MergeRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:PB.MergeRequest)
+void MessageProto::CopyFrom(const MessageProto& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:PB.MessageProto)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool MergeRequest::IsInitialized() const {
+bool MessageProto::IsInitialized() const {
   return true;
 }
 
-void MergeRequest::InternalSwap(MergeRequest* other) {
+void MessageProto::InternalSwap(MessageProto* other) {
   using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   txns_.InternalSwap(&other->txns_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &src_channel_, lhs_arena,
+      &other->src_channel_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &dest_channel_, lhs_arena,
+      &other->dest_channel_, rhs_arena
+  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(MergeRequest, dest_node_)
-      + sizeof(MergeRequest::dest_node_)
-      - PROTOBUF_FIELD_OFFSET(MergeRequest, src_node_)>(
-          reinterpret_cast<char*>(&src_node_),
-          reinterpret_cast<char*>(&other->src_node_));
+      PROTOBUF_FIELD_OFFSET(MessageProto, dest_node_id_)
+      + sizeof(MessageProto::dest_node_id_)
+      - PROTOBUF_FIELD_OFFSET(MessageProto, src_node_id_)>(
+          reinterpret_cast<char*>(&src_node_id_),
+          reinterpret_cast<char*>(&other->src_node_id_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata MergeRequest::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata MessageProto::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_message_2eproto_getter, &descriptor_table_message_2eproto_once,
       file_level_metadata_message_2eproto[4]);
@@ -1652,9 +1724,9 @@ template<> PROTOBUF_NOINLINE ::PB::ClientRequest*
 Arena::CreateMaybeMessage< ::PB::ClientRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::PB::ClientRequest >(arena);
 }
-template<> PROTOBUF_NOINLINE ::PB::MergeRequest*
-Arena::CreateMaybeMessage< ::PB::MergeRequest >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::PB::MergeRequest >(arena);
+template<> PROTOBUF_NOINLINE ::PB::MessageProto*
+Arena::CreateMaybeMessage< ::PB::MessageProto >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::PB::MessageProto >(arena);
 }
 template<> PROTOBUF_NOINLINE ::PB::ClientReply*
 Arena::CreateMaybeMessage< ::PB::ClientReply >(Arena* arena) {

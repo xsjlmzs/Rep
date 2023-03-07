@@ -8,6 +8,7 @@
 #include <zmqpp/zmqpp.hpp>
 
 #include "message.pb.h"
+#include "utils.h"
 
 #define XLOGE printf
 #define XLOGI printf
@@ -54,6 +55,16 @@ class Connection
 private:
     Configuration* config_;
 
+    AtomicMap<string, AtomicQueue<PB::MessageProto>*> channel_results_;
+
+    AtomicQueue<string>* new_channel_queue_;
+
+    AtomicQueue<string>* delete_channel_queue_;
+
+    AtomicQueue<PB::MessageProto>* send_message_queue_;
+
+    unordered_map<std::string, std::vector<PB::MessageProto> > undelivered_messages_;
+
     zmqpp::context cxt_;
     int remote_port_; // listen in
     zmqpp::socket* remote_in_; // remote node in
@@ -65,17 +76,24 @@ private:
 
     bool deconstructor_invoked_;
 
-    std::thread::id listen_thread_id_;
+    std::thread thread_;
+
+    Connection(const Connection&) = delete;
+    Connection& operator=(const Connection&) = delete;
 public:
-    Connection(Configuration* config);
+    explicit Connection(Configuration* config);
     ~Connection();
 
-    // void Run();
+    void Run();
     void ListenClientThread();
     void ListenRemoteThread();
 
+    void NewChannel(std::string channel);
+    void DeleteChannel(std::string channel);
+    bool GetMessage(const std::string& channel, PB::MessageProto* msg);
+    void Send(const PB::MessageProto& msg);
+
     std::queue<PB::ClientRequest> client_reqs_;
-    std::queue<PB::MergeRequest> merge_reqs_;
     std::queue<PB::ClientReply> replies_;
 };
 

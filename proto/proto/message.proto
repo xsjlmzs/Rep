@@ -42,13 +42,17 @@ message ClientRequest {
     Txn txn = 2;
 }
 
-message MergeRequest {
+message MessageProto {
     
-    Node src_node = 2;
+    uint32 src_node_id = 1;
 
-    Node dest_node = 3;
+    string src_channel = 2;
 
-    repeated Txn txns = 4;
+    uint32 dest_node_id = 3;
+
+    string dest_channel = 4;
+
+    repeated Txn txns = 5;
 
 }
 
