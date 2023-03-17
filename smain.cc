@@ -14,6 +14,10 @@ int main(int argc, char const *argv[])
     
     Configuration *config = new Configuration(std::stoi(argv[1]), "../conf/server_ip.conf");
     Connection *conn = new Connection(config);
+
+    Spin(1);
+
     taas::Server* server = new taas::Server(config, conn);
+    usleep(100000000);
     return 0;
 }

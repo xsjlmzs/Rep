@@ -58,7 +58,6 @@ Configuration::Configuration(int node_id, const std::string filename)
 Configuration::~Configuration() {
 }
 
-
 int Configuration::ReadFromFile(const std::string& filename)
 {
     std::ifstream file;
@@ -83,10 +82,20 @@ int Configuration::ReadFromFile(const std::string& filename)
         node->port       = atoi(strtok_r(NULL, ":", &tok));
 
         all_nodes_[node_id_] = node;
+        replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
         node->Print();
     }
     return 0;
 }
+
+int Configuration::LookupPartition(const std::string& key)
+{
+    int replica_id = all_nodes_[node_id_]->replica_id;
+    int partition_id = StringToInt(key) % replica_size[node_id_];
+    return node_ids[std::pair<int, int>(replica_id, partition_id)];
+}
+
+// ---------------------------- Class Connection -------------------------------
 
 Connection::Connection(Configuration* config) : config_(config), cxt_(), deconstructor_invoked_(false) {
     remote_port_ = config_->all_nodes_[config_->node_id_]->port;
@@ -111,7 +120,13 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
         }
     }
 
+    // alloc 
+    new_channel_queue_ = new AtomicQueue<std::string>();
+    delete_channel_queue_ = new AtomicQueue<std::string>();
+    send_message_queue_ = new AtomicQueue<PB::MessageProto>();
+    XLOGI("connection init complete, start running\n");
     thread_ = std::thread(&Connection::Run, this);
+
     return ;
 }
 
@@ -152,13 +167,16 @@ void Connection::DeleteChannel(std::string channel)
 
 void Connection::Run()
 {
+
     std::string new_channel;
     zmqpp::message_t msg;
     while (!deconstructor_invoked_)
     {
+        // XLOGI("!\n");
         // new channel
         while (new_channel_queue_->Pop(&new_channel))
         {
+
             if (channel_results_.Count(new_channel) > 0)
             {
                 // have existed channel
@@ -189,7 +207,7 @@ void Connection::Run()
         }
         
         // recv msg
-        if (remote_in_->receive(msg, false))
+        if (remote_in_->receive(msg, true))
         {
             PB::MessageProto mp;
             std::string msg_str;
@@ -215,6 +233,7 @@ void Connection::Run()
             {
                 if (channel_results_.Count(mp.dest_channel()) == 0)
                 {
+                    XLOGI("mp.dest_channel:=%s\n",mp.dest_channel().c_str());
                     undelivered_messages_[mp.dest_channel()].push_back(mp);
                 }
                 else
@@ -229,11 +248,8 @@ void Connection::Run()
                 msg << mp_str;
                 remote_out_[mp.dest_node_id()]->send(msg, false);
             }
-            
         }
-        
     }
-    
 }
 
 bool Connection::GetMessage(const std::string& channel, PB::MessageProto* msg)
@@ -294,12 +310,4 @@ void Connection::ListenClientThread() {
     }
 }
 
-void Connection::ListenRemoteThread() {
-    while (!deconstructor_invoked_) {
-        zmqpp::message msg;
-        if (remote_in_->receive(msg, false)) {
-
-        }
-    }
-}
 

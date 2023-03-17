@@ -19,11 +19,15 @@ public:
 
     void Run();
 
-    void SendRawCmd(const std::vector<std::vector<std::string>>& commands);
-
     void SendClientRequest(const PB::Txn& txn);
 
     void LoadConfig(std::string filename);
+
+    void GetTxn(PB::Txn** txn);
+
+    uint32 key_range_begin_;
+    uint32 key_range_end_;
+    uint16 txn_max_size_;
 };
 
 

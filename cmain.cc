@@ -6,7 +6,7 @@ int main(int argc, char const *argv[])
 {
     Client* client = new Client();
 
-    client->Run();
+    // client->Run();
 
 
     // zmq example

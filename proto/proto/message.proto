@@ -29,10 +29,12 @@ message Command {
 }
 
 message Txn {
-    // not used;
-    int64 txn_id = 1;
+    uint64 txn_id = 1;
     
-    repeated Command commands = 2;
+    uint64 start_epoch = 2;
+    uint64 end_epoch = 3;
+
+    repeated Command commands = 4;
 }
 
 message ClientRequest {
@@ -42,19 +44,50 @@ message ClientRequest {
     Txn txn = 2;
 }
 
-message MessageProto {
+message BatchTxns {
     
-    uint32 src_node_id = 1;
+    uint64 start_epoch = 1;
 
-    string src_channel = 2;
+    repeated Txn txns = 2;
+}
 
-    uint32 dest_node_id = 3;
-
-    string dest_channel = 4;
-
-    repeated Txn txns = 5;
+message HeartBeat {
 
 }
+
+message AbortTids {
+
+    uint64 start_epoch = 1;
+
+    repeated uint64 txn_ids = 2;
+}
+
+message MessageProto {
+
+    enum MessageType {
+        HEARTBEAT = 0;
+        BATCHTXNS = 1;
+        ABORTTIDS = 2;
+    }
+    
+    uint32 src_node_id = 10;
+
+    string src_channel = 12;
+
+    uint32 dest_node_id = 13;
+
+    string dest_channel = 14;
+
+    MessageType type = 15;
+
+    oneof message_type {
+        BatchTxns batch_txns = 21;
+        HeartBeat heart_beat = 22;
+        AbortTids abort_tids = 23;
+    }
+}
+
+
 
 message ClientReply {
     bool exec_res = 1;

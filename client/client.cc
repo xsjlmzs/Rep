@@ -6,6 +6,9 @@
 Client::Client()
 {
     LoadConfig("../conf/client_ip.conf");
+    key_range_begin_ = 1;
+    key_range_end_ = 100000000;
+    txn_max_size_ = 16;
     client_socket_ = new zmqpp::socket(cxt_, zmqpp::socket_type::req);
 }
 
@@ -108,11 +111,6 @@ void Client::Run()
     
 }
 
-void Client::SendRawCmd(const std::vector<std::vector<std::string>>& commands)
-{
-    
-}
-
 void Client::SendClientRequest(const PB::Txn& txn)
 {
     PB::ClientRequest cr;
@@ -182,5 +180,43 @@ void Client::LoadConfig(std::string filename)
             node.host = ip; node.port = port;
             servers_.push_back(node);
         }
+    }
+}
+
+void GetRandomKey(std::set<uint64>* keys, uint32 begin, uint32 end, uint16 num)
+{
+    std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<uint32> uniform_dist(begin, end);
+    for (uint16 i = 0; i < num; i++)
+    {
+        uint32 key = 0;
+        do
+        {
+            key = uniform_dist(gen);
+        } while (keys->count(key));
+        keys->insert(key);
+    }
+}
+
+void Client::GetTxn(PB::Txn** txn)
+{
+    std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<uint32> uniform_dist(1, txn_max_size_);
+
+    std::set<uint64> keys;
+    GetRandomKey(&keys, key_range_begin_, key_range_end_, uniform_dist(gen));
+
+    for(std::set<uint64>::iterator iter = keys.begin(); iter != keys.end(); ++iter)
+    {
+        PB::Command* cmd = (*txn)->add_commands();
+        if (uniform_dist(gen) & 1)
+        {
+            cmd->set_type(PB::OpType::GET);
+        }
+        else
+        {
+            cmd->set_type(PB::OpType::PUT);
+        }
+        cmd->set_key(UInt64ToString(*iter));
     }
 }

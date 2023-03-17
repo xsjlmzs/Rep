@@ -2,6 +2,7 @@
 #define EPOCH_H
 
 #include <atomic>
+#include "types.h"
 
 namespace taas
 {
@@ -10,18 +11,21 @@ namespace taas
     private:
         static EpochManager* em_;
 
-        int epoch_duration_; // ms
-        std::atomic<int32_t> cur_epoch_;
+        double epoch_duration_; // s
+        std::atomic<uint64> cur_epoch_;
         bool deconstructor_invoked_;
 
         EpochManager(int epoch_duration);
         ~EpochManager();
-        EpochManager(const EpochManager&);
+        EpochManager(const EpochManager&) = delete;
         EpochManager& operator=(const EpochManager&);
         void Run();
     public:
-        static EpochManager* GetInstance();
-        int GetPhysicalEpoch();
+        static EpochManager& GetInstance();
+        void AddPhysicalEpoch();
+        uint64 GetPhysicalEpoch();
+        double GetEpochDuration();
+
     };
 } // namespace taas
 

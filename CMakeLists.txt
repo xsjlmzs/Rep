@@ -26,7 +26,8 @@ add_executable(server smain.cc
       ./common/txn.cc
       ./common/common.cc
       ./storage/storage.cc
-      ./common/utils.cc)
+      ./common/utils.cc
+      ./client/client.cc)
 
 target_include_directories(client PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include 
@@ -37,7 +38,8 @@ target_include_directories(server PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include
       ${PROJECT_SOURCE_DIR}/server
       ${PROJECT_SOURCE_DIR}/common
-      ${PROJECT_SOURCE_DIR}/storage)
+      ${PROJECT_SOURCE_DIR}/storage
+      ${PROJECT_SOURCE_DIR}/client)
 
 target_link_libraries(client PRIVATE Proto pthread zmqpp zmq glog)
 

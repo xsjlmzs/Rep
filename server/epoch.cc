@@ -8,47 +8,42 @@ namespace taas
 
     EpochManager* EpochManager::em_ = nullptr;
 
-    EpochManager::EpochManager(int epoch_duration) : epoch_duration_(epoch_duration)
+    EpochManager::EpochManager(int epoch_duration = 1) : epoch_duration_(epoch_duration)
     {
-        cur_epoch_ = 0;
+        std::atomic_init(&cur_epoch_, 0);
         deconstructor_invoked_ = false;
     }
 
     EpochManager::~EpochManager()
     {
-        deconstructor_invoked_ = false;
+        deconstructor_invoked_ = true;
         delete em_;
     }
 
-    EpochManager::EpochManager(const EpochManager& em)
+    EpochManager& EpochManager::GetInstance()
     {
-
-    }
-
-    EpochManager& EpochManager::operator=(const EpochManager& em)
-    {
-        return *em_;
-    }
-
-    EpochManager* EpochManager::GetInstance()
-    {
-        if (em_ == nullptr)
-        {
-            em_ = new EpochManager(10);
-        }
-        return EpochManager::em_;
+        static EpochManager em;
+        return em;
     }
     void EpochManager::Run()
     {
         while (!deconstructor_invoked_)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(epoch_duration_));
-            cur_epoch_ ++;
+            // 
         }
     }
-    int EpochManager::GetPhysicalEpoch() 
+    void EpochManager::AddPhysicalEpoch()
     {
-        return cur_epoch_;
+        cur_epoch_++;
+    }
+    uint64 EpochManager::GetPhysicalEpoch() 
+    {
+        return cur_epoch_.load();
+    }
+
+    double EpochManager::GetEpochDuration()
+    {
+        return epoch_duration_;
     }
 } // namespace taas
 

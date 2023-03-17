@@ -45,9 +45,13 @@ private:
 public:
     int node_id_;
 
-    std::map<int, Node*> all_nodes_;
+    std::map<int, Node*> all_nodes_; 
+    std::map<int, int> replica_size; // <replica_id, size>
+    std::map<std::pair<int, int>, int> node_ids; // <<replica_id, partition_id>, node_id>
     Configuration(int node_id, const std::string filename);
     ~Configuration();
+
+    int LookupPartition(const std::string& key);
 };
 
 class Connection
@@ -86,7 +90,6 @@ public:
 
     void Run();
     void ListenClientThread();
-    void ListenRemoteThread();
 
     void NewChannel(std::string channel);
     void DeleteChannel(std::string channel);
