@@ -175,7 +175,6 @@ void Client::LoadConfig(std::string filename)
         else
         {
             std::string ip = ip_port[0]; int port = std::stoi(ip_port[1]);
-            XLOGI("receive server ip : %s:%d\n", ip.c_str(), port);
             Node node;
             node.host = ip; node.port = port;
             servers_.push_back(node);

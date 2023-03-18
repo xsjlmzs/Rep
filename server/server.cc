@@ -8,15 +8,16 @@ namespace taas
     Server::Server(Configuration* config, Connection* conn)
         :config_(config), conn_(conn), deconstructor_invoked_(false)
     {
+
         storage_ = new Storage();
         epoch_manager_ = &EpochManager::GetInstance();
         client_ = new Client();
 
-        XLOGI("init server complete, start sync all servers\n");
+        LOG(INFO) << "Start Sync All Servers";
 
         HeartbeatAllServers();
 
-        XLOGI("sync all servers complete\n");
+        LOG(INFO) << "Sync Servers Complete";
 
         pack_thread_ = std::thread(&Server::Run, this);
         // listen_thread.join();
@@ -74,7 +75,6 @@ namespace taas
         {
             if(conn_->GetMessage("synchronization_sequencer_channel", &sync_msg))
             {
-                XLOGI("heartbeat received reply msg\n");
                 sync_server_cnt++;
             }
         }
@@ -127,7 +127,7 @@ namespace taas
             uint64 cur_epoch;
             std::set<uint64> local_abort_txn_ids;
             cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            XLOGI("----- epoch %ld start -----\n", cur_epoch);
+            LOG(INFO) << "------ epoch "<< cur_epoch << "start ------";
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
 
@@ -138,6 +138,7 @@ namespace taas
                 local_txns.Push(*txn);
             }
 
+            LOG(INFO) << "epoch " << cur_epoch << "txns collected, start distribute and merge";
             // process with all other shard peer
 
             conn_->NewChannel("atomic");
@@ -146,7 +147,7 @@ namespace taas
             conn_->DeleteChannel("atomic");
             conn_->DeleteChannel("abort_tid");
 
-            XLOGI("----- epoch %ld end -----\n", cur_epoch);
+            LOG(INFO) << "------ epoch "<< cur_epoch << "end ------";
             
             epoch_manager_->AddPhysicalEpoch();
         } 
@@ -282,7 +283,7 @@ namespace taas
 
         for (auto &&elem : crdt_map_)
         {
-            XLOGI("record %s commit, its belong tid %ld\n", elem.first.c_str(), elem.second);
+            LOG(INFO) << "record " << elem.first << "commit, its txn id = " << elem.second;
         }
     }
 

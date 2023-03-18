@@ -41,10 +41,8 @@ PB::OpType GetOpType(const std::string& op) {
 }
 
 bool OpenFile(const std::string& filename, std::ifstream& file) {
-    XLOGI("the designated file is %s\n",filename.c_str());
     file.open(filename);
     if (file.fail()) {
-        XLOGE("error when open the designated file\n");
         return false;
     }
     return true;
@@ -52,8 +50,9 @@ bool OpenFile(const std::string& filename, std::ifstream& file) {
 
 Configuration::Configuration(int node_id, const std::string filename)
     :node_id_(node_id) {
+  LOG(INFO) << "Configure Construct Start";
   ReadFromFile(filename);
-  XLOGI("servers total amount:= %ld\n", all_nodes_.size());
+  LOG(INFO) << "Configure Construct Finish";
 }
 
 Configuration::~Configuration() {
@@ -63,7 +62,7 @@ int Configuration::ReadFromFile(const std::string& filename)
 {
     std::ifstream file;
     if (!OpenFile(filename, file)) {
-        XLOGE("Configuration open file error\n");
+        LOG(ERROR) << "Open File " << filename << "Failed";
         return -1;
     }
 
@@ -86,7 +85,7 @@ int Configuration::ReadFromFile(const std::string& filename)
         all_nodes_[node->node_id] = node;
         replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
         node_ids[std::pair<int,int>(node->replica_id, node->partition_id)] = node->node_id;
-        node->Print();
+        // node->Print();
     }
     return 0;
 }
@@ -101,10 +100,11 @@ int Configuration::LookupPartition(const std::string& key)
 // ---------------------------- Class Connection -------------------------------
 
 Connection::Connection(Configuration* config) : config_(config), cxt_(), deconstructor_invoked_(false) {
+
+    LOG(INFO) << "Connection Start Init";
     remote_port_ = config_->all_nodes_[config_->node_id_]->port;
     remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
-    XLOGI("Connection Init, remote in socket: %s\n",remote_endpoint.c_str());
     remote_in_->bind(remote_endpoint);
 
     // port listen for client request 
@@ -120,7 +120,6 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
         if (config->node_id_ != it->second->node_id) {
             remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
-            XLOGI("Connection Init, remote out%d socket: %s\n", it->second->node_id, endpoint.c_str());
             remote_out_[it->second->node_id]->connect(endpoint); 
         }
     }
@@ -129,13 +128,14 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     new_channel_queue_ = new AtomicQueue<std::string>();
     delete_channel_queue_ = new AtomicQueue<std::string>();
     send_message_queue_ = new AtomicQueue<PB::MessageProto>();
-    XLOGI("connection init complete, start running\n");
     thread_ = std::thread(&Connection::Run, this);
-
+    LOG(INFO) << "Connection Init Complete";
     return ;
 }
 
 Connection::~Connection() {
+
+    LOG(INFO) << "Connection Deconstruct Start";
     deconstructor_invoked_ = true;
 
     thread_.join();
@@ -150,6 +150,7 @@ Connection::~Connection() {
     }
 
     channel_results_.Destroy();
+    LOG(INFO) << "Connection Deconstruct Finish";
 }
 
 void Connection::NewChannel(std::string channel)
@@ -177,7 +178,6 @@ void Connection::Run()
     zmqpp::message_t msg;
     while (!deconstructor_invoked_)
     {
-        // XLOGI("!\n");
         // new channel
         while (new_channel_queue_->Pop(&new_channel))
         {
@@ -238,7 +238,6 @@ void Connection::Run()
             {
                 if (channel_results_.Count(mp.dest_channel()) == 0)
                 {
-                    XLOGI("mp.dest_channel:=%s\n",mp.dest_channel().c_str());
                     undelivered_messages_[mp.dest_channel()].push_back(mp);
                 }
                 else
@@ -295,7 +294,6 @@ void Connection::ListenClientThread() {
         zmqpp::message msg;
         if (client_resp_->receive(msg, false)) {
             PB::ClientRequest cr = ZmqMsgToClientRequest(msg);
-            XLOGI("Connection has received a client request\n");
             client_reqs_.push(cr);
             while (true)
             {
