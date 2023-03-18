@@ -70,13 +70,12 @@ namespace taas
         
         int sync_server_cnt = 1;
         // sync_msg.Clear();
-
         while (sync_server_cnt < config_->all_nodes_.size())
         {
             if(conn_->GetMessage("synchronization_sequencer_channel", &sync_msg))
             {
+                XLOGI("heartbeat received reply msg\n");
                 sync_server_cnt++;
-                // sync_msg.Clear();
             }
         }
         // communicate complete

@@ -52,7 +52,8 @@ bool OpenFile(const std::string& filename, std::ifstream& file) {
 
 Configuration::Configuration(int node_id, const std::string filename)
     :node_id_(node_id) {
-  ReadFromFile(filename);  
+  ReadFromFile(filename);
+  XLOGI("servers total amount:= %ld\n", all_nodes_.size());
 }
 
 Configuration::~Configuration() {
@@ -77,11 +78,12 @@ int Configuration::ReadFromFile(const std::string& filename)
         sscanf(line.c_str(), "node%d=%s", &node->node_id, buf);
         
         char* tok;
-        node->replica_id = atoi(strtok_r(buf, ":", &tok));
-        node->host       =      strtok_r(NULL, ":", &tok);
-        node->port       = atoi(strtok_r(NULL, ":", &tok));
+        node->replica_id   = atoi(strtok_r(buf,  ":", &tok));
+        node->partition_id = atoi(strtok_r(NULL,  ":", &tok));
+        node->host         =      strtok_r(NULL, ":", &tok);
+        node->port         = atoi(strtok_r(NULL, ":", &tok));
 
-        all_nodes_[node_id_] = node;
+        all_nodes_[node->node_id] = node;
         replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
         node->Print();
     }
@@ -101,6 +103,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     remote_port_ = config_->all_nodes_[config_->node_id_]->port;
     remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
+    XLOGI("Connection Init, remote in socket: %s\n",remote_endpoint.c_str());
     remote_in_->bind(remote_endpoint);
 
     // port listen for client request 
@@ -115,7 +118,8 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->second->node_id) {
             remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
-            std::string endpoint = "tcp://" + it->second->host + std::to_string(it->second->port); 
+            std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
+            XLOGI("Connection Init, remote out%d socket: %s\n", it->second->node_id, endpoint.c_str());
             remote_out_[it->second->node_id]->connect(endpoint); 
         }
     }
