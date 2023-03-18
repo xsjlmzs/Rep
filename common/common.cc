@@ -85,6 +85,7 @@ int Configuration::ReadFromFile(const std::string& filename)
 
         all_nodes_[node->node_id] = node;
         replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
+        node_ids[std::pair<int,int>(node->replica_id, node->partition_id)] = node->node_id;
         node->Print();
     }
     return 0;
@@ -93,7 +94,7 @@ int Configuration::ReadFromFile(const std::string& filename)
 int Configuration::LookupPartition(const std::string& key)
 {
     int replica_id = all_nodes_[node_id_]->replica_id;
-    int partition_id = StringToInt(key) % replica_size[node_id_];
+    int partition_id = StringToInt(key) % replica_size[replica_id];
     return node_ids[std::pair<int, int>(replica_id, partition_id)];
 }
 

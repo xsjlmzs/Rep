@@ -279,6 +279,11 @@ namespace taas
                 iter++;
             }
         }
+
+        for (auto &&elem : crdt_map_)
+        {
+            XLOGI("record %s commit, its belong tid %ld\n", elem.first.c_str(), elem.second);
+        }
     }
 
     void Server::Merge()
