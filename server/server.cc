@@ -127,7 +127,7 @@ namespace taas
             uint64 cur_epoch;
             std::set<uint64> local_abort_txn_ids;
             cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            LOG(INFO) << "------ epoch "<< cur_epoch << "start ------";
+            LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
 
@@ -147,7 +147,7 @@ namespace taas
             conn_->DeleteChannel("atomic");
             conn_->DeleteChannel("abort_tid");
 
-            LOG(INFO) << "------ epoch "<< cur_epoch << "end ------";
+            LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             
             epoch_manager_->AddPhysicalEpoch();
         } 
