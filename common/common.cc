@@ -52,6 +52,14 @@ Configuration::Configuration(int node_id, const std::string filename)
     :node_id_(node_id) {
   LOG(INFO) << "Configure Construct Start";
   ReadFromFile(filename);
+  replica_id_ = all_nodes_[node_id_]->replica_id;
+  partition_id_ = all_nodes_[node_id_]->partition_id;
+  replica_num_ = all_nodes_.rbegin()->second->replica_id + 1;
+  if (all_nodes_.size() % replica_num_ != 0)
+  {
+    LOG(ERROR) << "replica size error";
+  }
+  replica_size_ = all_nodes_.size() / replica_num_;
   LOG(INFO) << "Configure Construct Finish";
 }
 
@@ -83,18 +91,18 @@ int Configuration::ReadFromFile(const std::string& filename)
         node->port         = atoi(strtok_r(NULL, ":", &tok));
 
         all_nodes_[node->node_id] = node;
-        replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
-        node_ids[std::pair<int,int>(node->replica_id, node->partition_id)] = node->node_id;
+        // replica_size.find(node->replica_id) == replica_size.end() ? replica_size[node->replica_id] = 1 : replica_size[node->replica_id]++;
+        // node_ids[std::pair<int,int>(node->replica_id, node->partition_id)] = node->node_id;
         // node->Print();
     }
     return 0;
 }
 
-int Configuration::LookupPartition(const std::string& key)
+int Configuration::LookupPartition(int replica_id, const std::string& key)
 {
-    int replica_id = all_nodes_[node_id_]->replica_id;
-    int partition_id = StringToInt(key) % replica_size[replica_id];
-    return node_ids[std::pair<int, int>(replica_id, partition_id)];
+    // int replica_id = all_nodes_[node_id_]->replica_id;
+    int partition_id = StringToInt(key) % replica_size_;
+    return replica_id * replica_size_ + partition_id;
 }
 
 // ---------------------------- Class Connection -------------------------------

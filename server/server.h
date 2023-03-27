@@ -26,8 +26,15 @@ namespace taas
         bool deconstructor_invoked_;
         // for local merge <key, tid>
         std::map<std::string, uint64> crdt_map_;
-        // local commit txn
+        // local generate txn
         AtomicQueue<PB::Txn> local_txns;
+        // in-region all subtxns
+        AtomicQueue<PB::MessageProto> all_subtxns;
+        // out-region all subtxns
+        AtomicQueue<PB::MessageProto> peer_subtxns;
+        // record aborted txn id
+        std::set<uint64> aborted_txnid;
+
 
         uint64_t GenerateTid();
         void HeartbeatAllServers();
@@ -42,6 +49,8 @@ namespace taas
         Server(Configuration* config, Connection* conn);
         ~Server();
         void Run();
+        void Distribute();
+        void Replicate();
         void DistributeAndHold();
         void Merge();
     };
