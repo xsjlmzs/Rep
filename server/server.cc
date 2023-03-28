@@ -12,7 +12,8 @@ namespace taas
         storage_ = new Storage();
         epoch_manager_ = &EpochManager::GetInstance();
         client_ = new Client();
-
+        thread_pool_ = new ThreadPool();
+        thread_pool_->init();
         LOG(INFO) << "Start Sync All Servers";
 
         HeartbeatAllServers();
@@ -82,31 +83,31 @@ namespace taas
         conn_->DeleteChannel("synchronization_sequencer_channel");
     }
 
-    void Server::WriteIntent(const PB::Txn& txn)
+    void Server::WriteIntent(const PB::Txn& txn, uint64 epoch)
     {
         for (const auto &stat : txn.commands())
         {
             if (stat.type() == PB::OpType::PUT)
             {
-                if (crdt_map_.count(stat.key()) &&  crdt_map_[stat.key()] < txn.txn_id())
+                if (crdt_map_[epoch].count(stat.key()) &&  crdt_map_[epoch][stat.key()] < txn.txn_id())
                 {
                     // frist wirite win
                 }
                 else
                 {
-                    crdt_map_[stat.key()] = txn.txn_id();
+                    crdt_map_[epoch][stat.key()] = txn.txn_id();
                 }
             }
         }
     }
 
-    bool Server::Validate(const PB::Txn& txn)
+    bool Server::Validate(const PB::Txn& txn, uint64 epoch)
     {
         for (const auto &stat : txn.commands())
         {
             if (stat.type() == PB::OpType::PUT)
             {
-                if (crdt_map_[stat.key()] == txn.txn_id())
+                if (crdt_map_[epoch][stat.key()] == txn.txn_id())
                 {
                     /* code */
                 }
@@ -127,6 +128,7 @@ namespace taas
             uint64 cur_epoch;
             std::set<uint64> local_abort_txn_ids;
             cur_epoch = epoch_manager_->GetPhysicalEpoch();
+            std::vector<PB::Txn> local_txns;
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
@@ -135,25 +137,27 @@ namespace taas
                 client_->GetTxn(&txn);
                 txn->set_txn_id(GenerateTid());
                 txn->set_start_epoch(cur_epoch);
-                local_txns.Push(*txn);
+                local_txns.push_back(*txn);
+                delete txn;
             }
 
             LOG(INFO) << "epoch " << cur_epoch << " txns collected, start distribute and merge";
             // process with all other shard peer
-            Work();
-
+            // worker
+            thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             
             epoch_manager_->AddPhysicalEpoch();
         } 
     }
 
-    void Server::Distribute()
+    std::vector<PB::MessageProto>* Server::Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch)
     {
         // <node_id, batch_txns>
         // sync in local replica
         LOG(INFO) << "Start Distribute";
-        conn_->NewChannel("Shard");
+        std::string channel = "Shard" + std::to_string(epoch);
+        conn_->NewChannel(channel);
         std::map<int, PB::MessageProto> batch_txns;
         for (std::map<int, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
@@ -170,23 +174,23 @@ namespace taas
         }
 
         // divide txn into subtxns
-        for (size_t i = 0; i < local_txns.Size(); i++)
+        for (size_t i = 0; i < local_txns.size(); i++)
         {
-            PB::Txn* txn = new PB::Txn();
-            bool res = local_txns.Pop(txn);
+            PB::Txn txn ;
+            txn = local_txns.at(i);
             std::map<int, PB::Txn> subtxns; // <node_id, subtxn>
 
-            for (size_t j = 0; j < txn->commands_size(); j++)
+            for (size_t j = 0; j < txn.commands_size(); j++)
             {
-                const PB::Command& single_cmd = txn->commands(j);
+                const PB::Command& single_cmd = txn.commands(j);
                 int local_replica_id = config_->all_nodes_[config_->node_id_]->replica_id;
                 // find responsible node for the key in local replica
                 int mds = config_->LookupPartition(local_replica_id, single_cmd.key());
                 if (subtxns.count(mds) == 0)
                 {
                     PB::Txn subtxn;
-                    subtxn.set_txn_id(txn->txn_id());
-                    subtxn.set_start_epoch(txn->start_epoch());
+                    subtxn.set_txn_id(txn.txn_id());
+                    subtxn.set_start_epoch(txn.start_epoch());
                     subtxns[mds] = subtxn;
                 }
                 PB::Command* added_cmd_ptr = subtxns[mds].add_commands();
@@ -203,7 +207,6 @@ namespace taas
         }
 
         // send msg to *all* peer node in replica
-
         for (const auto& val: config_->all_nodes_)
         {
             // mayby empty msg
@@ -214,34 +217,33 @@ namespace taas
         // barrier : wait for all other msg arrive
 
         int counter = 0;
-        PB::MessageProto* recv_subtxn = new PB::MessageProto();
+        PB::MessageProto recv_subtxn;
+        std::vector<PB::MessageProto>* all_subtxns = new std::vector<PB::MessageProto>();
         while (counter < config_->replica_size_)
         {
-            if(conn_->GetMessage("Shard", recv_subtxn))
+            if(conn_->GetMessage(channel, &recv_subtxn))
             {
                 counter++;
-                all_subtxns.Push(*recv_subtxn);
+                all_subtxns->push_back(recv_subtxn);
             }
         }
-        conn_->DeleteChannel("Shard");
+        conn_->DeleteChannel(channel);
         LOG(INFO) << "Distribute Finish";
+        return all_subtxns;
     }
 
     // send inregion subtxn to all other region's peer node
-    void Server::Replicate()
+    std::vector<PB::MessageProto>*  Server::Replicate(const std::vector<PB::MessageProto>& all_subtxns, uint64 epoch)
     {
         LOG(INFO) << "Start Replicate";
+        std::string channel = "Replica" + std::to_string(epoch);
         conn_->NewChannel("Replica");
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
-        for (size_t i = 0; i < all_subtxns.Size(); i++)
+        for (size_t i = 0; i < all_subtxns.size(); i++)
         {
-            PB::MessageProto* subtxn_ptr = new PB::MessageProto();
-            while (!all_subtxns.Pop(subtxn_ptr))
-            {
-                sleep(100);
-            }
-            send_msg_ptr->mutable_batch_txns()->mutable_txns()->CopyFrom(subtxn_ptr->batch_txns().txns());
-            all_subtxns.Push(*subtxn_ptr);
+            PB::MessageProto subtxn;
+            subtxn = all_subtxns.at(i);
+            send_msg_ptr->mutable_batch_txns()->mutable_txns()->CopyFrom(subtxn.batch_txns().txns());
         }
 
         for (std::map<int, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
@@ -260,52 +262,52 @@ namespace taas
         
         // barrier : wait for all other msg arrive
         int counter = 1;
-        PB::MessageProto* peer_subtxn = new PB::MessageProto();
+        PB::MessageProto peer_subtxn;
+        std::vector<PB::MessageProto>* peer_subtxns = new std::vector<PB::MessageProto>();
         while (counter < config_->replica_num_)
         {
-            if (conn_->GetMessage("Replica", peer_subtxn))
+            if (conn_->GetMessage(channel, &peer_subtxn))
             {
                 counter++;
-                peer_subtxns.Push(*peer_subtxn);
+                peer_subtxns->push_back(peer_subtxn);
             }
         }
-        conn_->DeleteChannel("Replica");
+        conn_->DeleteChannel(channel);
         LOG(INFO) << "Replicate Finish";
+        return peer_subtxns;
     }
 
     // process crdt merge
-    void Server::Merge()
+    void Server::Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch)
     {
         LOG(INFO) << "Start Merge";
-        conn_->NewChannel("abort_tid");
+        std::string channel = "abort_tid" + std::to_string(epoch);
+        conn_->NewChannel(channel);
         std::vector<PB::Txn> local_and_remote_txns;
         // write intent
-        while (!all_subtxns.Empty())
+        for (auto &&subtxn : all_subtxns)
         {
-            PB::MessageProto* subtxn = new PB::MessageProto();
-            all_subtxns.Pop(subtxn);
-            for (auto &&elem : subtxn->batch_txns().txns())
+            for (auto &&elem : subtxn.batch_txns().txns())
             {
                 local_and_remote_txns.push_back(elem);
-                WriteIntent(elem);
+                WriteIntent(elem, epoch);
             }
         }
         
-        while (!peer_subtxns.Empty())
+        for (auto &&subtxn : peer_subtxns)
         {
-            PB::MessageProto* subtxn = new PB::MessageProto();
-            peer_subtxns.Pop(subtxn);
-            for (auto &&elem : subtxn->batch_txns().txns())
+            for (auto &&elem : subtxn.batch_txns().txns())
             {
                 local_and_remote_txns.push_back(elem);
-                WriteIntent(elem);
+                WriteIntent(elem, epoch);
             }
         }
         
         // validate
+        std::set<uint64> aborted_txnid;
         for (auto &&elem : local_and_remote_txns)
         {
-            if (!Validate(elem))
+            if (!Validate(elem, epoch))
             {
                 aborted_txnid.insert(elem.txn_id());
             }
@@ -340,7 +342,7 @@ namespace taas
         while (counter < config_->replica_size_)
         {
             PB::MessageProto *abort_msg = new PB::MessageProto();
-            if (conn_->GetMessage("abort_tid", abort_msg))
+            if (conn_->GetMessage(channel, abort_msg))
             {
                 for (const uint64 id : abort_msg->abort_tids().txn_ids())
                 {
@@ -350,27 +352,28 @@ namespace taas
             }
         }
         // remove aborted txn
-        for (std::map<std::string, uint64>::iterator iter = crdt_map_.begin(); iter != crdt_map_.end(); )
+        for (std::map<std::string, uint64>::iterator iter = crdt_map_[epoch].begin(); iter != crdt_map_[epoch].end(); )
         {
             if (recv_abort_tids.count(iter->second)) // has been aborted
             {
-                crdt_map_.erase(iter++);
+                crdt_map_[epoch].erase(iter++);
             }
             else
             {
                 iter++;
             }
         }
-        conn_->DeleteChannel("abort_tid");
+        conn_->DeleteChannel(channel);
         LOG(INFO) << "Merge Finish";
     }
 
     // worker
-    void Server::Work()
+    void Server::Work(uint64 epoch)
     {
-        Distribute();
-        Replicate();
-        Merge();
+        std::vector<PB::MessageProto> *all_subtxns, *peer_subtxns;
+        all_subtxns = Distribute(local_txns_[epoch], epoch);
+        peer_subtxns = Replicate(*all_subtxns, epoch);
+        Merge(*all_subtxns, *peer_subtxns, epoch);
     }
 } // namespace taas
 

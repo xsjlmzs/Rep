@@ -9,6 +9,7 @@
 #include "storage.h"
 #include "txn.h"
 #include "client.h"
+#include "thread_pool.h"
 
 namespace taas
 {
@@ -22,26 +23,27 @@ namespace taas
         EpochManager* epoch_manager_;
         Storage* storage_;
         Client* client_;
+        ThreadPool* thread_pool_;
 
         bool deconstructor_invoked_;
         // for local merge <key, tid>
-        std::map<std::string, uint64> crdt_map_;
-        // local generate txn
-        AtomicQueue<PB::Txn> local_txns;
+        std::map<std::string, uint64> crdt_map_[100];
+        // local generate txn <epoch-id, tnxs>
+        std::map<uint64, std::vector<PB::Txn> > local_txns_;
         // in-region all subtxns
-        AtomicQueue<PB::MessageProto> all_subtxns;
+        // AtomicQueue<PB::MessageProto> all_subtxns;
         // out-region all subtxns
-        AtomicQueue<PB::MessageProto> peer_subtxns;
+        // AtomicQueue<PB::MessageProto> peer_subtxns;
         // record aborted txn id
-        std::set<uint64> aborted_txnid;
+
 
 
         uint64_t GenerateTid();
         void HeartbeatAllServers();
         void Execute(const Txn& txn, PB::ClientReply* reply);
 
-        void WriteIntent(const PB::Txn& txn);
-        bool Validate(const PB::Txn& txn);
+        void WriteIntent(const PB::Txn& txn, uint64 epoch);
+        bool Validate(const PB::Txn& txn, uint64 epoch);
 
         std::thread pack_thread_;
         std::thread merge_thread_;
@@ -49,13 +51,13 @@ namespace taas
         Server(Configuration* config, Connection* conn);
         ~Server();
         void Run();
-        void Distribute();
-        void Replicate();
+        std::vector<PB::MessageProto>* Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch);
+        std::vector<PB::MessageProto>* Replicate(const std::vector<PB::MessageProto>& all_subtxns, uint64 epoch);
         // void DistributeAndHold();
-        void Merge();
+        void Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker
-        void Work();
+        void Work(uint64 epoch);
     };
 } // namespace tass
 

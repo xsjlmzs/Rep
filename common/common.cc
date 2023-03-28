@@ -194,7 +194,6 @@ void Connection::Run()
         // new channel
         while (new_channel_queue_->Pop(&new_channel))
         {
-
             if (channel_results_.Count(new_channel) > 0)
             {
                 // have existed channel
