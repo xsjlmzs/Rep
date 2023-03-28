@@ -138,7 +138,7 @@ namespace taas
                 local_txns.Push(*txn);
             }
 
-            LOG(INFO) << "epoch " << cur_epoch << "txns collected, start distribute and merge";
+            LOG(INFO) << "epoch " << cur_epoch << " txns collected, start distribute and merge";
             // process with all other shard peer
             Work();
 
@@ -153,7 +153,7 @@ namespace taas
         // <node_id, batch_txns>
         // sync in local replica
         LOG(INFO) << "Start Distribute";
-
+        conn_->NewChannel("Shard");
         std::map<int, PB::MessageProto> batch_txns;
         for (std::map<int, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
@@ -223,7 +223,7 @@ namespace taas
                 all_subtxns.Push(*recv_subtxn);
             }
         }
-
+        conn_->DeleteChannel("Shard");
         LOG(INFO) << "Distribute Finish";
     }
 
@@ -231,7 +231,7 @@ namespace taas
     void Server::Replicate()
     {
         LOG(INFO) << "Start Replicate";
-
+        conn_->NewChannel("Replica");
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
         for (size_t i = 0; i < all_subtxns.Size(); i++)
         {
@@ -240,7 +240,7 @@ namespace taas
             {
                 sleep(100);
             }
-            send_msg_ptr->mutable_batch_txns()->add_txns()->CopyFrom(*subtxn_ptr);
+            send_msg_ptr->mutable_batch_txns()->mutable_txns()->CopyFrom(subtxn_ptr->batch_txns().txns());
             all_subtxns.Push(*subtxn_ptr);
         }
 
@@ -269,13 +269,15 @@ namespace taas
                 peer_subtxns.Push(*peer_subtxn);
             }
         }
-        
+        conn_->DeleteChannel("Replica");
         LOG(INFO) << "Replicate Finish";
     }
 
     // process crdt merge
     void Server::Merge()
     {
+        LOG(INFO) << "Start Merge";
+        conn_->NewChannel("abort_tid");
         std::vector<PB::Txn> local_and_remote_txns;
         // write intent
         while (!all_subtxns.Empty())
@@ -359,6 +361,8 @@ namespace taas
                 iter++;
             }
         }
+        conn_->DeleteChannel("abort_tid");
+        LOG(INFO) << "Merge Finish";
     }
 
     // worker

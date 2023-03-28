@@ -60,6 +60,11 @@ Configuration::Configuration(int node_id, const std::string filename)
     LOG(ERROR) << "replica size error";
   }
   replica_size_ = all_nodes_.size() / replica_num_;
+  LOG(INFO) << "replica   id : " << replica_id_   ;
+  LOG(INFO) << "partition id : " << partition_id_ ;
+  LOG(INFO) << "replica num  : " << replica_num_  ;
+  LOG(INFO) << "replica size : " << replica_size_ ;
+
   LOG(INFO) << "Configure Construct Finish";
 }
 
