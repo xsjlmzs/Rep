@@ -51,8 +51,11 @@ namespace taas
         void Run();
         void Distribute();
         void Replicate();
-        void DistributeAndHold();
+        // void DistributeAndHold();
         void Merge();
+
+        // worker
+        void Work();
     };
 } // namespace tass
 

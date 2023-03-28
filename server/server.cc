@@ -140,6 +140,8 @@ namespace taas
 
             LOG(INFO) << "epoch " << cur_epoch << "txns collected, start distribute and merge";
             // process with all other shard peer
+            Work();
+
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             
             epoch_manager_->AddPhysicalEpoch();
@@ -305,7 +307,6 @@ namespace taas
             {
                 aborted_txnid.insert(elem.txn_id());
             }
-            
         }
         
         // broadcast abort id
@@ -358,8 +359,14 @@ namespace taas
                 iter++;
             }
         }
+    }
 
-        // todo: write in
+    // worker
+    void Server::Work()
+    {
+        Distribute();
+        Replicate();
+        Merge();
     }
 } // namespace taas
 
