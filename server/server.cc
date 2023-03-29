@@ -128,7 +128,6 @@ namespace taas
             uint64 cur_epoch;
             std::set<uint64> local_abort_txn_ids;
             cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            std::vector<PB::Txn> local_txns;
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
@@ -137,16 +136,16 @@ namespace taas
                 client_->GetTxn(&txn);
                 txn->set_txn_id(GenerateTid());
                 txn->set_start_epoch(cur_epoch);
-                local_txns.push_back(*txn);
+                local_txns_[cur_epoch].push_back(*txn);
                 delete txn;
             }
 
-            LOG(INFO) << "epoch " << cur_epoch << " txns collected, start distribute and merge";
+            LOG(INFO) << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
             thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
-            
+
             epoch_manager_->AddPhysicalEpoch();
         } 
     }
@@ -168,7 +167,7 @@ namespace taas
             PB::MessageProto mp;
             mp.set_src_node_id(config_->node_id_);
             mp.set_dest_node_id(iter->first);
-            mp.set_dest_channel("Shard");
+            mp.set_dest_channel(channel);
             mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
             batch_txns[iter->first] = mp;
         }
@@ -215,7 +214,6 @@ namespace taas
 
         LOG(INFO) << "send subtxns msg finish";
         // barrier : wait for all other msg arrive
-
         int counter = 0;
         PB::MessageProto recv_subtxn;
         std::vector<PB::MessageProto>* all_subtxns = new std::vector<PB::MessageProto>();
@@ -237,7 +235,7 @@ namespace taas
     {
         LOG(INFO) << "Start Replicate";
         std::string channel = "Replica" + std::to_string(epoch);
-        conn_->NewChannel("Replica");
+        conn_->NewChannel(channel);
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
         for (size_t i = 0; i < all_subtxns.size(); i++)
         {
@@ -254,7 +252,7 @@ namespace taas
                 PB::MessageProto mp(*send_msg_ptr);
                 mp.set_src_node_id(config_->node_id_);
                 mp.set_dest_node_id(iter->first);
-                mp.set_dest_channel("Replica");
+                mp.set_dest_channel(channel);
                 mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
                 conn_->Send(mp);
             }
@@ -323,7 +321,7 @@ namespace taas
             PB::MessageProto mp;
             mp.set_src_node_id(config_->node_id_);
             mp.set_dest_node_id(iter->first);
-            mp.set_dest_channel("abort_tid");
+            mp.set_dest_channel(channel);
             mp.set_type(PB::MessageProto_MessageType_ABORTTIDS);
 
             for (const uint64 id : aborted_txnid)
