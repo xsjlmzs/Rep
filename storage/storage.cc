@@ -13,8 +13,19 @@ Storage::~Storage()
 
 void Storage::put(const std::string& key, const std::string& value)
 {
+    std::unique_lock<std::mutex> lock(mtx_);
     (*kvs_)[key] = value;
 }
+
+void Storage::batch_put(const std::vector<std::pair<std::string, std::string>>& kvs)
+{
+    std::unique_lock<std::mutex> lock(mtx_);
+    for (auto &&kv : kvs)
+    {
+        (*kvs_)[kv.first] = kv.second;
+    }
+}
+
 std::string Storage::get(const std::string& key)
 {
     if (kvs_->find(key) == kvs_->end())

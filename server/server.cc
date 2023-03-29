@@ -276,18 +276,18 @@ namespace taas
     }
 
     // process crdt merge
-    void Server::Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch)
+    std::vector<std::pair<std::string, std::string>>* Server::Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch)
     {
         LOG(INFO) << "Start Merge";
         std::string channel = "abort_tid" + std::to_string(epoch);
         conn_->NewChannel(channel);
-        std::vector<PB::Txn> local_and_remote_txns;
+        std::vector<PB::Txn> local_and_remote_subtxns;
         // write intent
         for (auto &&subtxn : all_subtxns)
         {
             for (auto &&elem : subtxn.batch_txns().txns())
             {
-                local_and_remote_txns.push_back(elem);
+                local_and_remote_subtxns.push_back(elem);
                 WriteIntent(elem, epoch);
             }
         }
@@ -296,18 +296,18 @@ namespace taas
         {
             for (auto &&elem : subtxn.batch_txns().txns())
             {
-                local_and_remote_txns.push_back(elem);
+                local_and_remote_subtxns.push_back(elem);
                 WriteIntent(elem, epoch);
             }
         }
         
         // validate
-        std::set<uint64> aborted_txnid;
-        for (auto &&elem : local_and_remote_txns)
+        std::set<uint64> local_aborted_tids;
+        for (auto &&elem : local_and_remote_subtxns)
         {
             if (!Validate(elem, epoch))
             {
-                aborted_txnid.insert(elem.txn_id());
+                local_aborted_tids.insert(elem.txn_id());
             }
         }
         
@@ -324,7 +324,7 @@ namespace taas
             mp.set_dest_channel(channel);
             mp.set_type(PB::MessageProto_MessageType_ABORTTIDS);
 
-            for (const uint64 id : aborted_txnid)
+            for (const uint64 id : local_aborted_tids)
             {
                 mp.mutable_abort_tids()->add_txn_ids(id);
             }
@@ -333,7 +333,7 @@ namespace taas
         
         // receive abort_tid set
         int counter = 0;
-        std::set<uint64> recv_abort_tids;
+        std::set<uint64> remote_abort_tids;
 
         // barrier : wait for abort info arrive
 
@@ -344,15 +344,22 @@ namespace taas
             {
                 for (const uint64 id : abort_msg->abort_tids().txn_ids())
                 {
-                    recv_abort_tids.insert(id);
+                    remote_abort_tids.insert(id);
                 }
                 counter++;
             }
         }
+
+        // union local and remote abort txns' id
+        for (uint64 id : local_aborted_tids)
+        {
+            remote_abort_tids.insert(id);
+        }
+
         // remove aborted txn
         for (std::map<std::string, uint64>::iterator iter = crdt_map_[epoch].begin(); iter != crdt_map_[epoch].end(); )
         {
-            if (recv_abort_tids.count(iter->second)) // has been aborted
+            if (remote_abort_tids.count(iter->second)) // has been aborted
             {
                 crdt_map_[epoch].erase(iter++);
             }
@@ -361,17 +368,39 @@ namespace taas
                 iter++;
             }
         }
+
+        std::vector<std::pair<std::string, std::string>> *win_subtxns = new std::vector<std::pair<std::string, std::string>>();
+        for (auto &&subtxn : local_and_remote_subtxns)
+        {
+            if (!remote_abort_tids.count(subtxn.txn_id()))
+            {
+                // dont contain the aborted txn id
+                for (auto &&cmd : subtxn.commands())
+                {
+                    if (cmd.type() != PB::PUT)
+                    {
+                        continue;
+                    }
+                    std::pair<std::string, std::string> kv = std::make_pair(cmd.key(), cmd.value());
+                    win_subtxns->emplace_back(kv);
+                }
+                
+            }
+        }
         conn_->DeleteChannel(channel);
         LOG(INFO) << "Merge Finish";
+        return win_subtxns;
     }
 
     // worker
     void Server::Work(uint64 epoch)
     {
         std::vector<PB::MessageProto> *all_subtxns, *peer_subtxns;
+        std::vector<std::pair<std::string, std::string>> *win_subtxns;
         all_subtxns = Distribute(local_txns_[epoch], epoch);
         peer_subtxns = Replicate(*all_subtxns, epoch);
-        Merge(*all_subtxns, *peer_subtxns, epoch);
+        win_subtxns = Merge(*all_subtxns, *peer_subtxns, epoch);
+        // atomic write in storage all_subtxns + peer_subtxns
     }
 } // namespace taas
 

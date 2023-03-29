@@ -7,10 +7,12 @@ class Storage
 {
 private:
     std::map<std::string, std::string>* kvs_;
+    std::mutex mtx_;
 public:
     Storage(/* args */);
     ~Storage();
     void put(const std::string& key, const std::string& value);
+    void batch_put(const std::vector<std::pair<std::string, std::string>>& kvs);
     std::string get(const std::string& key);
 };
 

@@ -41,6 +41,7 @@ namespace taas
         uint64_t GenerateTid();
         void HeartbeatAllServers();
         void Execute(const Txn& txn, PB::ClientReply* reply);
+        
 
         void WriteIntent(const PB::Txn& txn, uint64 epoch);
         bool Validate(const PB::Txn& txn, uint64 epoch);
@@ -54,7 +55,7 @@ namespace taas
         std::vector<PB::MessageProto>* Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch);
         std::vector<PB::MessageProto>* Replicate(const std::vector<PB::MessageProto>& all_subtxns, uint64 epoch);
         // void DistributeAndHold();
-        void Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
+        std::vector<std::pair<std::string, std::string>>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker
         void Work(uint64 epoch);
