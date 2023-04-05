@@ -11,7 +11,7 @@ namespace taas
 
         storage_ = new Storage();
         epoch_manager_ = &EpochManager::GetInstance();
-        client_ = new Client();
+        client_ = new Client(config, 0, 10000);
         thread_pool_ = new ThreadPool();
         thread_pool_->init();
         LOG(INFO) << "Start Sync All Servers";
@@ -133,8 +133,7 @@ namespace taas
             {
 
                 PB::Txn *txn = new PB::Txn();
-                client_->GetTxn(&txn);
-                txn->set_txn_id(GenerateTid());
+                client_->GetTxn(&txn, GenerateTid());
                 txn->set_start_epoch(cur_epoch);
                 local_txns_[cur_epoch].push_back(*txn);
                 delete txn;
@@ -369,11 +368,13 @@ namespace taas
             }
         }
 
+        int win_counter = 0;
         std::vector<std::pair<std::string, std::string>> *win_subtxns = new std::vector<std::pair<std::string, std::string>>();
         for (auto &&subtxn : local_and_remote_subtxns)
         {
             if (!remote_abort_tids.count(subtxn.txn_id()))
             {
+                win_counter ++;
                 // dont contain the aborted txn id
                 for (auto &&cmd : subtxn.commands())
                 {
@@ -384,11 +385,11 @@ namespace taas
                     std::pair<std::string, std::string> kv = std::make_pair(cmd.key(), cmd.value());
                     win_subtxns->emplace_back(kv);
                 }
-                
             }
         }
         conn_->DeleteChannel(channel);
         LOG(INFO) << "Merge Finish";
+        LOG(INFO) << win_counter << " txns commit successfully";
         return win_subtxns;
     }
 

@@ -46,6 +46,7 @@ public:
     int node_id_;
     int replica_id_;
     int partition_id_;
+    
     int replica_size_;
     int replica_num_;
 

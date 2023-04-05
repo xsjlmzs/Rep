@@ -18,7 +18,8 @@ add_subdirectory(proto)
 add_executable(client cmain.cc 
       ./client/client.cc
       ./common/common.cc
-      ./common/utils.cc)
+      ./common/utils.cc
+      ./client/tpcc.cc)
 
 add_executable(server smain.cc
       ./server/server.cc
@@ -27,7 +28,8 @@ add_executable(server smain.cc
       ./common/common.cc
       ./storage/storage.cc
       ./common/utils.cc
-      ./client/client.cc)
+      ./client/client.cc
+      ./client/tpcc.cc)
 
 target_include_directories(client PRIVATE
       ${PROJECT_SOURCE_DIR}/proto/include 

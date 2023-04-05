@@ -3,7 +3,8 @@
 
 #include "client.h"
 
-Client::Client()
+Client::Client(Configuration* config, uint32 mp, uint32 hot_records)
+    : config_(config), percent_mp_(mp), tpcc(config, hot_records)
 {
     LoadConfig("../conf/client_ip.conf");
     key_range_begin_ = 1;
@@ -197,25 +198,39 @@ void GetRandomKey(std::set<uint64>* keys, uint32 begin, uint32 end, uint16 num)
     }
 }
 
-void Client::GetTxn(PB::Txn** txn)
+void Client::GetTxn(PB::Txn** txn, uint64 txn_id)
 {
-    std::mt19937 gen(std::random_device{}());
-    std::uniform_int_distribution<uint32> uniform_dist(1, txn_max_size_);
+    // std::mt19937 gen(std::random_device{}());
+    // std::uniform_int_distribution<uint32> uniform_dist(1, txn_max_size_);
 
-    std::set<uint64> keys;
-    GetRandomKey(&keys, key_range_begin_, key_range_end_, uniform_dist(gen));
+    // std::set<uint64> keys;
+    // GetRandomKey(&keys, key_range_begin_, key_range_end_, uniform_dist(gen));
 
-    for(std::set<uint64>::iterator iter = keys.begin(); iter != keys.end(); ++iter)
+    // for(std::set<uint64>::iterator iter = keys.begin(); iter != keys.end(); ++iter)
+    // {
+    //     PB::Command* cmd = (*txn)->add_commands();
+    //     if (uniform_dist(gen) & 1)
+    //     {
+    //         cmd->set_type(PB::OpType::GET);
+    //     }
+    //     else
+    //     {
+    //         cmd->set_type(PB::OpType::PUT);
+    //     }
+    //     cmd->set_key(UInt64ToString(*iter));
+    // }
+    uint32 relative_node_id = config_->node_id_ % config_->replica_size_;
+    if (config_->replica_size_ > 1 && (uint32)(rand() % 100) < percent_mp_)
     {
-        PB::Command* cmd = (*txn)->add_commands();
-        if (uniform_dist(gen) & 1)
-        {
-            cmd->set_type(PB::OpType::GET);
-        }
-        else
-        {
-            cmd->set_type(PB::OpType::PUT);
-        }
-        cmd->set_key(UInt64ToString(*iter));
+        uint64 other;
+        do {
+            other = (uint32) (rand() % config_->replica_size_);
+        } while (other == relative_node_id);
+        *txn = tpcc.TpccTxnMP(txn_id, relative_node_id, other);
     }
+    else
+    {
+        *txn = tpcc.TpccTxnSP(txn_id, relative_node_id);
+    }
+    
 }
