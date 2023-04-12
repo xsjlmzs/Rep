@@ -541,7 +541,10 @@ namespace taas
                 }
             }
         }
-        LOG(ERROR) << "cant pass the subtxn's atomic test";
+        if (!atomic_test)
+        {
+            LOG(ERROR) << "cant pass the subtxn's atomic test";   
+        }
         
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
