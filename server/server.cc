@@ -494,10 +494,59 @@ namespace taas
         // determinstic process merge
         // return value : kvs all will write in db 
         committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
-        // atomic write in storage all_subtxns + peer_subtxns
+        // atomic batch write in
         BatchWrite(committable_subtxns);
+
+        // Check Correctness
+        std::set<uint64> committed_tid_set;
+        for (size_t i = 0; i < committable_subtxns->size(); i++)
+        {
+            const PB::Txn& txn = committable_subtxns->at(i);
+            committed_tid_set.insert(txn.txn_id());
+        }
+        bool atomic_test = true;
+        for (auto &&subtxns : *inregion_subtxns)
+        {
+            for (auto &&subtxn : subtxns.batch_txns().txns())
+            {
+                if (committed_tid_set.count(subtxn.txn_id()))
+                {
+                    // TxnStatus = COMMIT
+                    for (auto &&stat : subtxn.commands())
+                    {
+                        if (stat.type() == PB::OpType::PUT)
+                        {
+                            std::string read_res = storage_->get(stat.key());
+                            if (read_res != stat.value())
+                            {
+                                atomic_test = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // TxnStatus = ABORT
+                    for (auto &&stat : subtxn.commands())
+                    {
+                        if (stat.type() == PB::OpType::PUT)
+                        {
+                            std::string read_res = storage_->get(stat.key());
+                            if (read_res == stat.value())
+                            {
+                                atomic_test = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        LOG(ERROR) << "cant pass the subtxn's atomic test";
+        
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
+
+    
 } // namespace taas
 
 
