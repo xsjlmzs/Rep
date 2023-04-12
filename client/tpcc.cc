@@ -78,6 +78,16 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
     return txn;
 }
 
+std::string RandomString()
+{
+    size_t length = rand()%18 + 1;
+    std::string str = "";
+    for (size_t i = 0; i < length; i++)
+    {
+        str += rand()%26 + 'a';
+    }
+}
+
 //----------- Create a multi-partition transaction -------------------------
 PB::Txn* Tpcc::TpccTxnMP(uint64 txn_id, uint32 part1, uint32 part2)
 {
@@ -104,6 +114,7 @@ PB::Txn* Tpcc::TpccTxnMP(uint64 txn_id, uint32 part1, uint32 part2)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
+        cmd->set_value(RandomString());
     }
 
     // Add customer to the read set
@@ -124,6 +135,7 @@ PB::Txn* Tpcc::TpccTxnMP(uint64 txn_id, uint32 part1, uint32 part2)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
+        cmd->set_value(RandomString());
     }
     return txn;
 }

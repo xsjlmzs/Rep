@@ -28,6 +28,7 @@ void Storage::batch_put(const std::vector<std::pair<std::string, std::string>>& 
 
 std::string Storage::get(const std::string& key)
 {
+    std::unique_lock<std::mutex> lock(mtx_);
     if (kvs_->find(key) == kvs_->end())
     {
         return "";
