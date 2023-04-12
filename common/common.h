@@ -50,13 +50,14 @@ public:
     int replica_size_;
     int replica_num_;
 
-    std::map<int, Node*> all_nodes_; 
+    std::map<uint32, Node*> all_nodes_; 
     // std::map<int, int> replica_size; // <replica_id, size>
     // std::map<std::pair<int, int>, int> node_ids; // <<replica_id, partition_id>, node_id>
     Configuration(int node_id, const std::string filename);
     ~Configuration();
 
-    int LookupPartition(int replica_id, const std::string& key);
+    int LookupPartition(const std::string& key);
+    uint32 LookupMachineID(int partition_id);
 };
 
 class Connection

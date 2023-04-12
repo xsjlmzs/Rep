@@ -27,10 +27,7 @@ namespace taas
     }
     void EpochManager::Run()
     {
-        while (!deconstructor_invoked_)
-        {
-            // 
-        }
+
     }
     void EpochManager::AddPhysicalEpoch()
     {

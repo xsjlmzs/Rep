@@ -38,6 +38,7 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
     PB::Txn* txn = new PB::Txn();
     txn->set_txn_id(txn_id);
 
+    // Add warehouse to read set.
     uint64 hotkey1 = part + config_->replica_size_ * (rand() % warehouses_per_node_);
 
     PB::Command* cmd = txn->add_commands();
@@ -54,7 +55,7 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
         cmd->set_key(UInt64ToString(*iter));
     }
     
-    // Add comstomer to the read set
+    // Add coustomer to the read set
     keys.clear();
     GetRandomKeys(&keys, 1, district_end_, customer_end_, part);
     for (std::set<uint64>::iterator iter = keys.begin(); iter != keys.end(); ++iter)

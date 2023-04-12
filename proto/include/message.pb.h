@@ -141,6 +141,33 @@ inline bool OpType_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<OpType>(
     OpType_descriptor(), name, value);
 }
+enum TxnStatus : int {
+  PEND = 0,
+  EXEC = 1,
+  ABORT = 2,
+  COMMIT = 3,
+  TxnStatus_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  TxnStatus_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool TxnStatus_IsValid(int value);
+constexpr TxnStatus TxnStatus_MIN = PEND;
+constexpr TxnStatus TxnStatus_MAX = COMMIT;
+constexpr int TxnStatus_ARRAYSIZE = TxnStatus_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TxnStatus_descriptor();
+template<typename T>
+inline const std::string& TxnStatus_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, TxnStatus>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function TxnStatus_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    TxnStatus_descriptor(), enum_t_value);
+}
+inline bool TxnStatus_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, TxnStatus* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<TxnStatus>(
+    TxnStatus_descriptor(), name, value);
+}
 // ===================================================================
 
 class Node final :
@@ -600,6 +627,9 @@ class Txn final :
     kTxnIdFieldNumber = 1,
     kStartEpochFieldNumber = 2,
     kEndEpochFieldNumber = 3,
+    kMasterReplicaFieldNumber = 5,
+    kMasterNodeFieldNumber = 6,
+    kStatusFieldNumber = 7,
   };
   // repeated .PB.Command commands = 4;
   int commands_size() const;
@@ -646,6 +676,33 @@ class Txn final :
   void _internal_set_end_epoch(uint64_t value);
   public:
 
+  // uint32 master_replica = 5;
+  void clear_master_replica();
+  uint32_t master_replica() const;
+  void set_master_replica(uint32_t value);
+  private:
+  uint32_t _internal_master_replica() const;
+  void _internal_set_master_replica(uint32_t value);
+  public:
+
+  // uint32 master_node = 6;
+  void clear_master_node();
+  uint32_t master_node() const;
+  void set_master_node(uint32_t value);
+  private:
+  uint32_t _internal_master_node() const;
+  void _internal_set_master_node(uint32_t value);
+  public:
+
+  // .PB.TxnStatus status = 7;
+  void clear_status();
+  ::PB::TxnStatus status() const;
+  void set_status(::PB::TxnStatus value);
+  private:
+  ::PB::TxnStatus _internal_status() const;
+  void _internal_set_status(::PB::TxnStatus value);
+  public:
+
   // @@protoc_insertion_point(class_scope:PB.Txn)
  private:
   class _Internal;
@@ -657,6 +714,9 @@ class Txn final :
   uint64_t txn_id_;
   uint64_t start_epoch_;
   uint64_t end_epoch_;
+  uint32_t master_replica_;
+  uint32_t master_node_;
+  int status_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
@@ -2067,6 +2127,66 @@ Txn::commands() const {
   return commands_;
 }
 
+// uint32 master_replica = 5;
+inline void Txn::clear_master_replica() {
+  master_replica_ = 0u;
+}
+inline uint32_t Txn::_internal_master_replica() const {
+  return master_replica_;
+}
+inline uint32_t Txn::master_replica() const {
+  // @@protoc_insertion_point(field_get:PB.Txn.master_replica)
+  return _internal_master_replica();
+}
+inline void Txn::_internal_set_master_replica(uint32_t value) {
+  
+  master_replica_ = value;
+}
+inline void Txn::set_master_replica(uint32_t value) {
+  _internal_set_master_replica(value);
+  // @@protoc_insertion_point(field_set:PB.Txn.master_replica)
+}
+
+// uint32 master_node = 6;
+inline void Txn::clear_master_node() {
+  master_node_ = 0u;
+}
+inline uint32_t Txn::_internal_master_node() const {
+  return master_node_;
+}
+inline uint32_t Txn::master_node() const {
+  // @@protoc_insertion_point(field_get:PB.Txn.master_node)
+  return _internal_master_node();
+}
+inline void Txn::_internal_set_master_node(uint32_t value) {
+  
+  master_node_ = value;
+}
+inline void Txn::set_master_node(uint32_t value) {
+  _internal_set_master_node(value);
+  // @@protoc_insertion_point(field_set:PB.Txn.master_node)
+}
+
+// .PB.TxnStatus status = 7;
+inline void Txn::clear_status() {
+  status_ = 0;
+}
+inline ::PB::TxnStatus Txn::_internal_status() const {
+  return static_cast< ::PB::TxnStatus >(status_);
+}
+inline ::PB::TxnStatus Txn::status() const {
+  // @@protoc_insertion_point(field_get:PB.Txn.status)
+  return _internal_status();
+}
+inline void Txn::_internal_set_status(::PB::TxnStatus value) {
+  
+  status_ = value;
+}
+inline void Txn::set_status(::PB::TxnStatus value) {
+  _internal_set_status(value);
+  // @@protoc_insertion_point(field_set:PB.Txn.status)
+}
+
 // -------------------------------------------------------------------
 
 // ClientRequest
@@ -2919,6 +3039,11 @@ template <> struct is_proto_enum< ::PB::OpType> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::PB::OpType>() {
   return ::PB::OpType_descriptor();
+}
+template <> struct is_proto_enum< ::PB::TxnStatus> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::PB::TxnStatus>() {
+  return ::PB::TxnStatus_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

@@ -14,6 +14,13 @@ enum OpType {
     DELETE = 3; // not used
 }
 
+enum TxnStatus {
+    PEND = 0;
+    EXEC = 1;
+    ABORT = 2;
+    COMMIT = 3;
+}
+
 // enum MessageType {
 //     EMPTY = 0;
 //     CLIENT_REQUEST = 1;
@@ -35,6 +42,11 @@ message Txn {
     uint64 end_epoch = 3;
 
     repeated Command commands = 4;
+
+    uint32 master_replica = 5;
+    uint32 master_node = 6;
+
+    TxnStatus status = 7;
 }
 
 message ClientRequest {

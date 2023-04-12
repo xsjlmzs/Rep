@@ -36,7 +36,6 @@ PB::OpType GetOpType(const std::string& op) {
     else if (op == "DELETE") {
         op_type = PB::DELETE;
     }
-    
     return op_type;
 }
 
@@ -91,7 +90,7 @@ int Configuration::ReadFromFile(const std::string& filename)
         
         char* tok;
         node->replica_id   = atoi(strtok_r(buf,  ":", &tok));
-        node->partition_id = atoi(strtok_r(NULL,  ":", &tok));
+        node->partition_id = atoi(strtok_r(NULL, ":", &tok));
         node->host         =      strtok_r(NULL, ":", &tok);
         node->port         = atoi(strtok_r(NULL, ":", &tok));
 
@@ -103,11 +102,14 @@ int Configuration::ReadFromFile(const std::string& filename)
     return 0;
 }
 
-int Configuration::LookupPartition(int replica_id, const std::string& key)
+int Configuration::LookupPartition(const string& key)
 {
-    // int replica_id = all_nodes_[node_id_]->replica_id;
-    int partition_id = StringToInt(key) % replica_size_;
-    return replica_id * replica_size_ + partition_id;
+    return StringToInt(key) % replica_size_;
+}
+
+uint32 Configuration::LookupMachineID(int partition_id)
+{
+    return replica_id_ * replica_size_ + partition_id;
 }
 
 // ---------------------------- Class Connection -------------------------------
@@ -128,7 +130,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
 
     // build socket
     send_mutex_ = new std::mutex[config_->all_nodes_.size()];
-    for (std::map<int, Node*>::const_iterator it = config->all_nodes_.begin();
+    for (std::map<uint, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->second->node_id) {
             remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);

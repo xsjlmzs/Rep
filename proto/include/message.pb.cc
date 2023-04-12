@@ -54,7 +54,11 @@ PROTOBUF_CONSTEXPR Txn::Txn(
   : commands_()
   , txn_id_(uint64_t{0u})
   , start_epoch_(uint64_t{0u})
-  , end_epoch_(uint64_t{0u}){}
+  , end_epoch_(uint64_t{0u})
+  , master_replica_(0u)
+  , master_node_(0u)
+  , status_(0)
+{}
 struct TxnDefaultTypeInternal {
   PROTOBUF_CONSTEXPR TxnDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -148,7 +152,7 @@ struct ClientReplyDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientReplyDefaultTypeInternal _ClientReply_default_instance_;
 }  // namespace PB
 static ::_pb::Metadata file_level_metadata_message_2eproto[9];
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_message_2eproto[2];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_message_2eproto[3];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_message_2eproto = nullptr;
 
 const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -179,6 +183,9 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::PB::Txn, start_epoch_),
   PROTOBUF_FIELD_OFFSET(::PB::Txn, end_epoch_),
   PROTOBUF_FIELD_OFFSET(::PB::Txn, commands_),
+  PROTOBUF_FIELD_OFFSET(::PB::Txn, master_replica_),
+  PROTOBUF_FIELD_OFFSET(::PB::Txn, master_node_),
+  PROTOBUF_FIELD_OFFSET(::PB::Txn, status_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::PB::ClientRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -237,12 +244,12 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 0, -1, -1, sizeof(::PB::Node)},
   { 8, -1, -1, sizeof(::PB::Command)},
   { 17, -1, -1, sizeof(::PB::Txn)},
-  { 27, -1, -1, sizeof(::PB::ClientRequest)},
-  { 35, -1, -1, sizeof(::PB::BatchTxns)},
-  { 43, -1, -1, sizeof(::PB::HeartBeat)},
-  { 49, -1, -1, sizeof(::PB::AbortTids)},
-  { 57, -1, -1, sizeof(::PB::MessageProto)},
-  { 72, -1, -1, sizeof(::PB::ClientReply)},
+  { 30, -1, -1, sizeof(::PB::ClientRequest)},
+  { 38, -1, -1, sizeof(::PB::BatchTxns)},
+  { 46, -1, -1, sizeof(::PB::HeartBeat)},
+  { 52, -1, -1, sizeof(::PB::AbortTids)},
+  { 60, -1, -1, sizeof(::PB::MessageProto)},
+  { 75, -1, -1, sizeof(::PB::ClientReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -260,30 +267,33 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\rmessage.proto\022\002PB\" \n\004Node\022\n\n\002ip\030\001 \001(\t\022"
   "\014\n\004port\030\002 \001(\r\"\?\n\007Command\022\030\n\004type\030\001 \001(\0162\n"
-  ".PB.OpType\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001(\t\"\\"
-  "\n\003Txn\022\016\n\006txn_id\030\001 \001(\004\022\023\n\013start_epoch\030\002 \001"
-  "(\004\022\021\n\tend_epoch\030\003 \001(\004\022\035\n\010commands\030\004 \003(\0132"
-  "\013.PB.Command\"B\n\rClientRequest\022\033\n\tdest_no"
-  "de\030\001 \001(\0132\010.PB.Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn"
-  "\"7\n\tBatchTxns\022\023\n\013start_epoch\030\001 \001(\004\022\025\n\004tx"
-  "ns\030\002 \003(\0132\007.PB.Txn\"\013\n\tHeartBeat\"1\n\tAbortT"
-  "ids\022\023\n\013start_epoch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003("
-  "\004\"\313\002\n\014MessageProto\022\023\n\013src_node_id\030\n \001(\r\022"
-  "\023\n\013src_channel\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001"
-  "(\r\022\024\n\014dest_channel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034"
-  ".PB.MessageProto.MessageType\022#\n\nbatch_tx"
-  "ns\030\025 \001(\0132\r.PB.BatchTxnsH\000\022#\n\nheart_beat\030"
-  "\026 \001(\0132\r.PB.HeartBeatH\000\022#\n\nabort_tids\030\027 \001"
-  "(\0132\r.PB.AbortTidsH\000\":\n\013MessageType\022\r\n\tHE"
-  "ARTBEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORTTIDS\020\002B"
-  "\016\n\014message_type\"2\n\013ClientReply\022\020\n\010exec_r"
-  "es\030\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpType\022\013\n"
-  "\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003"
-  "b\006proto3"
+  ".PB.OpType\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001(\t\"\250"
+  "\001\n\003Txn\022\016\n\006txn_id\030\001 \001(\004\022\023\n\013start_epoch\030\002 "
+  "\001(\004\022\021\n\tend_epoch\030\003 \001(\004\022\035\n\010commands\030\004 \003(\013"
+  "2\013.PB.Command\022\026\n\016master_replica\030\005 \001(\r\022\023\n"
+  "\013master_node\030\006 \001(\r\022\035\n\006status\030\007 \001(\0162\r.PB."
+  "TxnStatus\"B\n\rClientRequest\022\033\n\tdest_node\030"
+  "\001 \001(\0132\010.PB.Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"7\n"
+  "\tBatchTxns\022\023\n\013start_epoch\030\001 \001(\004\022\025\n\004txns\030"
+  "\002 \003(\0132\007.PB.Txn\"\013\n\tHeartBeat\"1\n\tAbortTids"
+  "\022\023\n\013start_epoch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\313"
+  "\002\n\014MessageProto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013"
+  "src_channel\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022"
+  "\024\n\014dest_channel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB"
+  ".MessageProto.MessageType\022#\n\nbatch_txns\030"
+  "\025 \001(\0132\r.PB.BatchTxnsH\000\022#\n\nheart_beat\030\026 \001"
+  "(\0132\r.PB.HeartBeatH\000\022#\n\nabort_tids\030\027 \001(\0132"
+  "\r.PB.AbortTidsH\000\":\n\013MessageType\022\r\n\tHEART"
+  "BEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORTTIDS\020\002B\016\n\014"
+  "message_type\"2\n\013ClientReply\022\020\n\010exec_res\030"
+  "\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpType\022\013\n\007IN"
+  "VALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003*6\n"
+  "\tTxnStatus\022\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022\t\n\005ABORT\020"
+  "\002\022\n\n\006COMMIT\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 848, descriptor_table_protodef_message_2eproto,
+    false, false, 981, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -325,6 +335,22 @@ const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* OpType_descriptor() {
   return file_level_enum_descriptors_message_2eproto[1];
 }
 bool OpType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* TxnStatus_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_message_2eproto);
+  return file_level_enum_descriptors_message_2eproto[2];
+}
+bool TxnStatus_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -848,16 +874,16 @@ Txn::Txn(const Txn& from)
       commands_(from.commands_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&txn_id_, &from.txn_id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&end_epoch_) -
-    reinterpret_cast<char*>(&txn_id_)) + sizeof(end_epoch_));
+    static_cast<size_t>(reinterpret_cast<char*>(&status_) -
+    reinterpret_cast<char*>(&txn_id_)) + sizeof(status_));
   // @@protoc_insertion_point(copy_constructor:PB.Txn)
 }
 
 inline void Txn::SharedCtor() {
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
     reinterpret_cast<char*>(&txn_id_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&end_epoch_) -
-    reinterpret_cast<char*>(&txn_id_)) + sizeof(end_epoch_));
+    0, static_cast<size_t>(reinterpret_cast<char*>(&status_) -
+    reinterpret_cast<char*>(&txn_id_)) + sizeof(status_));
 }
 
 Txn::~Txn() {
@@ -885,8 +911,8 @@ void Txn::Clear() {
 
   commands_.Clear();
   ::memset(&txn_id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&end_epoch_) -
-      reinterpret_cast<char*>(&txn_id_)) + sizeof(end_epoch_));
+      reinterpret_cast<char*>(&status_) -
+      reinterpret_cast<char*>(&txn_id_)) + sizeof(status_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -930,6 +956,31 @@ const char* Txn::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 master_replica = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          master_replica_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint32 master_node = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          master_node_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .PB.TxnStatus status = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_status(static_cast<::PB::TxnStatus>(val));
         } else
           goto handle_unusual;
         continue;
@@ -988,6 +1039,25 @@ uint8_t* Txn::_InternalSerialize(
         InternalWriteMessage(4, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // uint32 master_replica = 5;
+  if (this->_internal_master_replica() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(5, this->_internal_master_replica(), target);
+  }
+
+  // uint32 master_node = 6;
+  if (this->_internal_master_node() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(6, this->_internal_master_node(), target);
+  }
+
+  // .PB.TxnStatus status = 7;
+  if (this->_internal_status() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      7, this->_internal_status(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1026,6 +1096,22 @@ size_t Txn::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_end_epoch());
   }
 
+  // uint32 master_replica = 5;
+  if (this->_internal_master_replica() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_master_replica());
+  }
+
+  // uint32 master_node = 6;
+  if (this->_internal_master_node() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_master_node());
+  }
+
+  // .PB.TxnStatus status = 7;
+  if (this->_internal_status() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_status());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
@@ -1058,6 +1144,15 @@ void Txn::MergeFrom(const Txn& from) {
   if (from._internal_end_epoch() != 0) {
     _internal_set_end_epoch(from._internal_end_epoch());
   }
+  if (from._internal_master_replica() != 0) {
+    _internal_set_master_replica(from._internal_master_replica());
+  }
+  if (from._internal_master_node() != 0) {
+    _internal_set_master_node(from._internal_master_node());
+  }
+  if (from._internal_status() != 0) {
+    _internal_set_status(from._internal_status());
+  }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1077,8 +1172,8 @@ void Txn::InternalSwap(Txn* other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   commands_.InternalSwap(&other->commands_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Txn, end_epoch_)
-      + sizeof(Txn::end_epoch_)
+      PROTOBUF_FIELD_OFFSET(Txn, status_)
+      + sizeof(Txn::status_)
       - PROTOBUF_FIELD_OFFSET(Txn, txn_id_)>(
           reinterpret_cast<char*>(&txn_id_),
           reinterpret_cast<char*>(&other->txn_id_));

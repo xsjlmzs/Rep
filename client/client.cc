@@ -6,16 +6,13 @@
 Client::Client(Configuration* config, uint32 mp, uint32 hot_records)
     : config_(config), percent_mp_(mp), tpcc(config, hot_records)
 {
-    LoadConfig("../conf/client_ip.conf");
-    key_range_begin_ = 1;
-    key_range_end_ = 100000000;
-    txn_max_size_ = 16;
     client_socket_ = new zmqpp::socket(cxt_, zmqpp::socket_type::req);
 }
 
 Client::~Client()
 {
     client_socket_->close();
+    delete client_socket_;
 }
 
 PB::Txn CmdsToTxn(const std::vector<std::vector<std::string>>& cmds)
@@ -38,7 +35,7 @@ PB::Txn CmdsToTxn(const std::vector<std::vector<std::string>>& cmds)
         }
         else
         {
-            XLOGE("unsupport operation\n");
+            LOG(ERROR) << "unsupport operation";
             continue;
         }
     }
@@ -61,26 +58,24 @@ void Client::Run()
         
         if (command.empty())
         {
-            XLOGE("commands is empty\n");
+            LOG(ERROR) << "command is empty";
             continue;
         }
 
         if (command[0] == "GET")
         {
             std::string key = command[1];
-            XLOGI("receive GET request, key is %s\n", key.c_str());
             commands.push_back(command);
         }
         else if (command[0] == "PUT")
         {
             std::string key = command[1];
             std::string value = command[2];
-            XLOGI("receive PUT request, key is %s, value is %s\n", key.c_str(), value.c_str());
             commands.push_back(command);
         }
         else if (command[0] == "BEGIN")
         {
-            XLOGI("receive BEGIN request, transaction begin\n");
+            LOG(INFO) << "receive BEGIN command, transaction begin";
             in_txn = true;
         }
         else if (command[0] == "END")
@@ -98,7 +93,7 @@ void Client::Run()
         }
         else
         {
-            XLOGE("unsupport operation\n");
+            LOG(ERROR) << "unsupprt operation";
             continue;
         }
 
@@ -117,10 +112,10 @@ void Client::SendClientRequest(const PB::Txn& txn)
     PB::ClientRequest cr;
     cr.mutable_txn()->CopyFrom(txn);
     
-    
     std::string str_cr;
     cr.SerializeToString(&str_cr);
 
+    // default server is id = 0
     zmqpp::endpoint_t target_endpoint = servers_[0].GetSocket();
 
     // XLOGI("target server: %s, msg content: %s\n",target_endpoint.c_str(), str_txn.c_str());
@@ -132,7 +127,7 @@ void Client::SendClientRequest(const PB::Txn& txn)
     client_socket_->send(req);
     
     // receive response
-    XLOGI("waiting for response\n");
+    LOG(INFO) << "waiting for response";
     zmqpp::message resp;
     client_socket_->receive(resp);
     std::string str_resp;
@@ -156,7 +151,7 @@ void Client::LoadConfig(std::string filename)
     std::ifstream address;
     if (!OpenFile(filename, address))
     {
-        XLOGE("load server config error\n");
+        LOG(ERROR) << "load server config error";
         return ;
     }
     
@@ -171,7 +166,7 @@ void Client::LoadConfig(std::string filename)
         std::vector<std::string> ip_port = split(ip_line, ':');
         if (ip_port.size() != 2)
         {
-            XLOGE("error ip format");
+            LOG(ERROR) << "wrong ip format";
         }
         else
         {
@@ -183,6 +178,7 @@ void Client::LoadConfig(std::string filename)
     }
 }
 
+// not used
 void GetRandomKey(std::set<uint64>* keys, uint32 begin, uint32 end, uint16 num)
 {
     std::mt19937 gen(std::random_device{}());
@@ -198,27 +194,9 @@ void GetRandomKey(std::set<uint64>* keys, uint32 begin, uint32 end, uint16 num)
     }
 }
 
+// generate workload
 void Client::GetTxn(PB::Txn** txn, uint64 txn_id)
 {
-    // std::mt19937 gen(std::random_device{}());
-    // std::uniform_int_distribution<uint32> uniform_dist(1, txn_max_size_);
-
-    // std::set<uint64> keys;
-    // GetRandomKey(&keys, key_range_begin_, key_range_end_, uniform_dist(gen));
-
-    // for(std::set<uint64>::iterator iter = keys.begin(); iter != keys.end(); ++iter)
-    // {
-    //     PB::Command* cmd = (*txn)->add_commands();
-    //     if (uniform_dist(gen) & 1)
-    //     {
-    //         cmd->set_type(PB::OpType::GET);
-    //     }
-    //     else
-    //     {
-    //         cmd->set_type(PB::OpType::PUT);
-    //     }
-    //     cmd->set_key(UInt64ToString(*iter));
-    // }
     uint32 relative_node_id = config_->node_id_ % config_->replica_size_;
     if (config_->replica_size_ > 1 && (uint32)(rand() % 100) < percent_mp_)
     {
@@ -232,5 +210,4 @@ void Client::GetTxn(PB::Txn** txn, uint64 txn_id)
     {
         *txn = tpcc.TpccTxnSP(txn_id, relative_node_id);
     }
-    
 }

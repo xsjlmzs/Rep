@@ -27,35 +27,31 @@ namespace taas
 
         bool deconstructor_invoked_;
         // for local merge <key, tid>
-        std::map<std::string, uint64> crdt_map_[100];
+        std::map<std::string, uint64> crdt_map_[kMaxEpoch];
         // local generate txn <epoch-id, tnxs>
         std::map<uint64, std::vector<PB::Txn> > local_txns_;
-        // in-region all subtxns
-        // AtomicQueue<PB::MessageProto> all_subtxns;
-        // out-region all subtxns
-        // AtomicQueue<PB::MessageProto> peer_subtxns;
-        // record aborted txn id
 
-
+        uint32_t local_server_id_;
 
         uint64_t GenerateTid();
         void HeartbeatAllServers();
         void Execute(const Txn& txn, PB::ClientReply* reply);
+        void ExecRead(PB::Txn& txn);
+        void ExecWrite(const PB::Txn& txn);
+        void BatchWrite(const std::vector<PB::Txn>* txns);
         
 
         void WriteIntent(const PB::Txn& txn, uint64 epoch);
         bool Validate(const PB::Txn& txn, uint64 epoch);
 
-        std::thread pack_thread_;
-        std::thread merge_thread_;
+        std::thread worker_;
     public:
-        Server(Configuration* config, Connection* conn);
+        Server(Configuration *config, Connection *conn, Client *client);
         ~Server();
         void Run();
         std::vector<PB::MessageProto>* Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch);
-        std::vector<PB::MessageProto>* Replicate(const std::vector<PB::MessageProto>& all_subtxns, uint64 epoch);
-        // void DistributeAndHold();
-        std::vector<std::pair<std::string, std::string>>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
+        std::vector<PB::MessageProto>* Replicate(const std::vector<PB::MessageProto>& inregion_subtxns, uint64 epoch);
+        std::vector<PB::Txn>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker
         void Work(uint64 epoch);
