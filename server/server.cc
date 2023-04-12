@@ -98,7 +98,7 @@ namespace taas
         sync_msg.set_type(PB::MessageProto_MessageType_HEARTBEAT);
         sync_msg.set_dest_channel(channel);
         sync_msg.set_src_node_id(local_server_id_);
-        for (std::map<uint, Node*>::iterator iter = config_->all_nodes_.begin();
+        for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin();
             iter != config_->all_nodes_.end(); ++iter)
         {
             uint32 remote_server_id = iter->first;
