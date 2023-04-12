@@ -32,6 +32,17 @@ void Tpcc::GetRandomKeys(std::set<uint64>* keys, uint32 num_keys, uint32 key_sta
     }
 }
 
+std::string RandomString()
+{
+    size_t length = rand()%18 + 1;
+    std::string str = "";
+    for (size_t i = 0; i < length; i++)
+    {
+        str += rand()%26 + 'a';
+    }
+    return str;
+}
+
 //--------- Create a  single-partition transaction -------------------------
 PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
 {
@@ -53,6 +64,7 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
+        cmd->set_value(RandomString());
     }
     
     // Add coustomer to the read set
@@ -73,19 +85,10 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
+        cmd->set_value(RandomString());
     }
 
     return txn;
-}
-
-std::string RandomString()
-{
-    size_t length = rand()%18 + 1;
-    std::string str = "";
-    for (size_t i = 0; i < length; i++)
-    {
-        str += rand()%26 + 'a';
-    }
 }
 
 //----------- Create a multi-partition transaction -------------------------
