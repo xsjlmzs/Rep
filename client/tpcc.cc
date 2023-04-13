@@ -34,7 +34,7 @@ void Tpcc::GetRandomKeys(std::set<uint64>* keys, uint32 num_keys, uint32 key_sta
 
 std::string RandomString()
 {
-    size_t length = rand()%18 + 1;
+    size_t length = rand()%18 + 20;
     std::string str = "";
     for (size_t i = 0; i < length; i++)
     {

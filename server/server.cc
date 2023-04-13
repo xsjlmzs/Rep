@@ -393,6 +393,7 @@ namespace taas
             {
                 PB::Txn new_txn(subtxn);
                 bool validate_res = Validate(new_txn, epoch);
+                // dont need to reply out-region nodes with read results
                 if (!validate_res)
                 {
                     new_txn.set_status(PB::ABORT);
@@ -405,11 +406,12 @@ namespace taas
         }
         
 
-        // send replies msg to in=region peers except itself
+        // send replies msg to in-region peers except itself
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
-            if(iter->first == config_->node_id_)
+            uint32 remote_server_id = iter->first;
+            if(remote_server_id == local_server_id_)
                 continue;
             conn_->Send(iter->second);
         }
@@ -535,6 +537,7 @@ namespace taas
                             std::string read_res = storage_->get(stat.key());
                             if (read_res == stat.value())
                             {
+                                LOG(ERROR) << "key : " << stat.key() << " value : " << stat.value();
                                 atomic_test = false;
                                 LOG(ERROR) << "epoch : " << epoch << " abort but enable to read";
                             }

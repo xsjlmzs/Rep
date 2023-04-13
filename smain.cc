@@ -4,6 +4,7 @@
 
 // global var
 int node_id, warerhouse = 10, percent_mp = 10;
+std::string config_path = "../conf/server_ip.conf";
 
 std::string instruction[]{"INVALID", "GET", "PUT", "DELETE"};
 
@@ -16,7 +17,11 @@ int main(int argc, char *argv[])
     using google::WARNING;
     using google::FATAL;
 
-    std::string config_path = "../conf/server_ip.conf";
+    for (size_t i = 0; i < 10; i++)
+    {
+        LOG(INFO) << "rand() = " << rand() ;
+    }
+    
 
     // parse command line 
     while (true)
@@ -44,15 +49,12 @@ int main(int argc, char *argv[])
             break;
         case 'm':
             percent_mp = std::stoi(optarg);
-            LOG(INFO) << "percent of distributed txns : " << percent_mp;
             break;
         case 'n':
             node_id = std::stoi(optarg);
-            LOG(INFO) << "the node id : " << node_id;
             break;
         case 'w':
             warerhouse = std::stoi(optarg);
-            LOG(INFO) << "the number of warehouse : " << warerhouse; 
             break;
         case  0 :
             if (long_options[option_index].flag != nullptr)
@@ -65,7 +67,10 @@ int main(int argc, char *argv[])
         }
     }
     
-    LOG(INFO) << warerhouse;
+    LOG(INFO) << "node : " << node_id;
+    LOG(INFO) << "warehouse : " << warerhouse;
+    LOG(INFO) << "percent_mp : " << percent_mp;
+    LOG(INFO) << "config_path : " << config_path;
     Configuration *config = new Configuration(node_id, config_path);
     Connection *conn = new Connection(config);
     Client *client = new Client(config, percent_mp, warerhouse);
