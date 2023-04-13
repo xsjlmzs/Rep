@@ -536,7 +536,7 @@ namespace taas
                             if (read_res == stat.value())
                             {
                                 atomic_test = false;
-                                LOG(ERROR) << "epoch : " << epoch << "abort but enable to read";
+                                LOG(ERROR) << "epoch : " << epoch << " abort but enable to read";
                             }
                         }
                     }
@@ -547,7 +547,6 @@ namespace taas
         {
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
         }
-        
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 
