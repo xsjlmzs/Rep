@@ -484,6 +484,28 @@ namespace taas
         return committable_subtxns;
     }
 
+    bool Server::CheckAtomic(const PB::Txn& txn, bool committed)
+    {
+        int total_write_cnt = 0, success_write_cnt = 0;
+        for (auto &&stat : txn.commands())
+        {
+            if (stat.type() == PB::OpType::PUT)
+            {
+                total_write_cnt ++;
+                std::string query_val =  storage_->get(stat.key());
+                if (query_val == stat.value())
+                {
+                    success_write_cnt ++;
+                }
+            }
+        }
+        if (committed)
+            return total_write_cnt == success_write_cnt ? true : false;
+        else
+            return success_write_cnt ? false : true;
+        
+    }
+
     // worker
     void Server::Work(uint64 epoch)
     {
@@ -511,39 +533,14 @@ namespace taas
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
-                if (committed_tid_set.count(subtxn.txn_id()))
-                {
-                    // TxnStatus = COMMIT
-                    for (auto &&stat : subtxn.commands())
-                    {
-                        if (stat.type() == PB::OpType::PUT)
-                        {
-                            std::string read_res = storage_->get(stat.key());
-                            if (read_res != stat.value())
-                            {
-                                atomic_test = false;
-                                LOG(ERROR) << "epoch : " << epoch << " commit but unable to read";
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // TxnStatus = ABORT
-                    for (auto &&stat : subtxn.commands())
-                    {
-                        if (stat.type() == PB::OpType::PUT)
-                        {
-                            std::string read_res = storage_->get(stat.key());
-                            if (read_res == stat.value())
-                            {
-                                LOG(ERROR) << "key : " << stat.key() << " value : " << stat.value();
-                                atomic_test = false;
-                                LOG(ERROR) << "epoch : " << epoch << " abort but enable to read";
-                            }
-                        }
-                    }
-                }
+                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+            }
+        }
+        for (auto &&subtxns : *outregion_subtxns)
+        {
+            for (auto &&subtxn : subtxns.batch_txns().txns())
+            {
+                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
             }
         }
         if (!atomic_test)
@@ -551,9 +548,7 @@ namespace taas
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
         }
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
-    }
-
-    
+    } 
 } // namespace taas
 
 

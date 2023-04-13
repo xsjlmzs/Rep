@@ -40,9 +40,10 @@ namespace taas
         void ExecWrite(const PB::Txn& txn);
         void BatchWrite(const std::vector<PB::Txn>* txns);
         
-
         void WriteIntent(const PB::Txn& txn, uint64 epoch);
         bool Validate(const PB::Txn& txn, uint64 epoch);
+
+        bool CheckAtomic(const PB::Txn& txn, bool committed);
 
         std::thread worker_;
     public:
