@@ -183,7 +183,7 @@ namespace taas
             }
             delete txn;
 
-            LOG(INFO) << " epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
+            LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
             thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
@@ -247,7 +247,7 @@ namespace taas
         {
             conn_->Send(iter->second);
         }
-        LOG(INFO) << "distribute complete and barrier";
+        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
         // barrier : wait for all other msg arrive
         int recv_msg_cnt = 0;
         PB::MessageProto recv_subtxn;
@@ -297,6 +297,7 @@ namespace taas
         }
         delete send_msg_ptr;
         
+        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
         // barrier : wait for the rest msg from out-region's server
         int counter = 1; // except itself
         PB::MessageProto recv_subtxn;
@@ -406,6 +407,7 @@ namespace taas
             conn_->Send(iter->second);
         }
         
+        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
         int recv_msg_cnt = 1;
         std::vector<PB::MessageProto> recv_replies;
 
