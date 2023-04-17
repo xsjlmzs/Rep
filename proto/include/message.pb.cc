@@ -123,6 +123,7 @@ PROTOBUF_CONSTEXPR MessageProto::MessageProto(
     ::_pbi::ConstantInitialized)
   : src_channel_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
   , dest_channel_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , debug_info_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
   , src_node_id_(0u)
   , dest_node_id_(0u)
   , type_(0)
@@ -230,6 +231,7 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
+  PROTOBUF_FIELD_OFFSET(::PB::MessageProto, debug_info_),
   PROTOBUF_FIELD_OFFSET(::PB::MessageProto, message_type_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::PB::ClientReply, _internal_metadata_),
@@ -249,7 +251,7 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 46, -1, -1, sizeof(::PB::HeartBeat)},
   { 52, -1, -1, sizeof(::PB::AbortTids)},
   { 60, -1, -1, sizeof(::PB::MessageProto)},
-  { 75, -1, -1, sizeof(::PB::ClientReply)},
+  { 76, -1, -1, sizeof(::PB::ClientReply)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -276,24 +278,24 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"7\n\tBatchTxns\022"
   "\023\n\013start_epoch\030\001 \001(\004\022\025\n\004txns\030\002 \003(\0132\007.PB."
   "Txn\"\013\n\tHeartBeat\"1\n\tAbortTids\022\023\n\013start_e"
-  "poch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\313\002\n\014MessageP"
+  "poch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\337\002\n\014MessageP"
   "roto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013src_channel"
   "\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022\024\n\014dest_cha"
   "nnel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB.MessagePro"
   "to.MessageType\022#\n\nbatch_txns\030\025 \001(\0132\r.PB."
   "BatchTxnsH\000\022#\n\nheart_beat\030\026 \001(\0132\r.PB.Hea"
   "rtBeatH\000\022#\n\nabort_tids\030\027 \001(\0132\r.PB.AbortT"
-  "idsH\000\":\n\013MessageType\022\r\n\tHEARTBEAT\020\000\022\r\n\tB"
-  "ATCHTXNS\020\001\022\r\n\tABORTTIDS\020\002B\016\n\014message_typ"
-  "e\"2\n\013ClientReply\022\020\n\010exec_res\030\001 \001(\010\022\021\n\tqu"
-  "ery_set\030\002 \003(\t*3\n\006OpType\022\013\n\007INVALID\020\000\022\007\n\003"
-  "GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003*6\n\tTxnStatus\022"
-  "\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022\t\n\005ABORT\020\002\022\n\n\006COMMIT"
-  "\020\003b\006proto3"
+  "idsH\000\022\022\n\ndebug_info\030\037 \001(\t\":\n\013MessageType"
+  "\022\r\n\tHEARTBEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORTT"
+  "IDS\020\002B\016\n\014message_type\"2\n\013ClientReply\022\020\n\010"
+  "exec_res\030\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpT"
+  "ype\022\013\n\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DE"
+  "LETE\020\003*6\n\tTxnStatus\022\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022"
+  "\t\n\005ABORT\020\002\022\n\n\006COMMIT\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 970, descriptor_table_protodef_message_2eproto,
+    false, false, 990, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -1964,6 +1966,14 @@ MessageProto::MessageProto(const MessageProto& from)
     dest_channel_.Set(from._internal_dest_channel(), 
       GetArenaForAllocation());
   }
+  debug_info_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    debug_info_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_debug_info().empty()) {
+    debug_info_.Set(from._internal_debug_info(), 
+      GetArenaForAllocation());
+  }
   ::memcpy(&src_node_id_, &from.src_node_id_,
     static_cast<size_t>(reinterpret_cast<char*>(&type_) -
     reinterpret_cast<char*>(&src_node_id_)) + sizeof(type_));
@@ -1997,6 +2007,10 @@ dest_channel_.InitDefault();
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
   dest_channel_.Set("", GetArenaForAllocation());
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+debug_info_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  debug_info_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
     reinterpret_cast<char*>(&src_node_id_) - reinterpret_cast<char*>(this)),
     0, static_cast<size_t>(reinterpret_cast<char*>(&type_) -
@@ -2017,6 +2031,7 @@ inline void MessageProto::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   src_channel_.Destroy();
   dest_channel_.Destroy();
+  debug_info_.Destroy();
   if (has_message_type()) {
     clear_message_type();
   }
@@ -2063,6 +2078,7 @@ void MessageProto::Clear() {
 
   src_channel_.ClearToEmpty();
   dest_channel_.ClearToEmpty();
+  debug_info_.ClearToEmpty();
   ::memset(&src_node_id_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&type_) -
       reinterpret_cast<char*>(&src_node_id_)) + sizeof(type_));
@@ -2142,6 +2158,16 @@ const char* MessageProto::_InternalParse(const char* ptr, ::_pbi::ParseContext* 
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 186)) {
           ptr = ctx->ParseMessage(_internal_mutable_abort_tids(), ptr);
           CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string debug_info = 31;
+      case 31:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 250)) {
+          auto str = _internal_mutable_debug_info();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "PB.MessageProto.debug_info"));
         } else
           goto handle_unusual;
         continue;
@@ -2234,6 +2260,16 @@ uint8_t* MessageProto::_InternalSerialize(
         _Internal::abort_tids(this).GetCachedSize(), target, stream);
   }
 
+  // string debug_info = 31;
+  if (!this->_internal_debug_info().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_debug_info().data(), static_cast<int>(this->_internal_debug_info().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "PB.MessageProto.debug_info");
+    target = stream->WriteStringMaybeAliased(
+        31, this->_internal_debug_info(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2262,6 +2298,13 @@ size_t MessageProto::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_dest_channel());
+  }
+
+  // string debug_info = 31;
+  if (!this->_internal_debug_info().empty()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_debug_info());
   }
 
   // uint32 src_node_id = 10;
@@ -2334,6 +2377,9 @@ void MessageProto::MergeFrom(const MessageProto& from) {
   if (!from._internal_dest_channel().empty()) {
     _internal_set_dest_channel(from._internal_dest_channel());
   }
+  if (!from._internal_debug_info().empty()) {
+    _internal_set_debug_info(from._internal_debug_info());
+  }
   if (from._internal_src_node_id() != 0) {
     _internal_set_src_node_id(from._internal_src_node_id());
   }
@@ -2386,6 +2432,10 @@ void MessageProto::InternalSwap(MessageProto* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &dest_channel_, lhs_arena,
       &other->dest_channel_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &debug_info_, lhs_arena,
+      &other->debug_info_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(MessageProto, type_)

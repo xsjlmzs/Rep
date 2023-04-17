@@ -284,6 +284,7 @@ void Connection::Send(const PB::MessageProto& msg)
 {
     PB::MessageProto mp;
     mp.CopyFrom(msg);
+    LOG(INFO) << mp.debug_info() << "epoch : " << mp.dest_node_id() << " & " << mp.dest_channel();
     send_message_queue_->Push(mp);
 }
 

@@ -97,6 +97,8 @@ message MessageProto {
         HeartBeat heart_beat = 22;
         AbortTids abort_tids = 23;
     }
+
+    string debug_info = 31;
 }
 
 

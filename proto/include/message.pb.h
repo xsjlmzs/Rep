@@ -1501,6 +1501,7 @@ class MessageProto final :
   enum : int {
     kSrcChannelFieldNumber = 12,
     kDestChannelFieldNumber = 14,
+    kDebugInfoFieldNumber = 31,
     kSrcNodeIdFieldNumber = 10,
     kDestNodeIdFieldNumber = 13,
     kTypeFieldNumber = 15,
@@ -1534,6 +1535,20 @@ class MessageProto final :
   const std::string& _internal_dest_channel() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_dest_channel(const std::string& value);
   std::string* _internal_mutable_dest_channel();
+  public:
+
+  // string debug_info = 31;
+  void clear_debug_info();
+  const std::string& debug_info() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_debug_info(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_debug_info();
+  PROTOBUF_NODISCARD std::string* release_debug_info();
+  void set_allocated_debug_info(std::string* debug_info);
+  private:
+  const std::string& _internal_debug_info() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_debug_info(const std::string& value);
+  std::string* _internal_mutable_debug_info();
   public:
 
   // uint32 src_node_id = 10;
@@ -1634,6 +1649,7 @@ class MessageProto final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr src_channel_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dest_channel_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr debug_info_;
   uint32_t src_node_id_;
   uint32_t dest_node_id_;
   int type_;
@@ -2894,6 +2910,56 @@ inline ::PB::AbortTids* MessageProto::mutable_abort_tids() {
   ::PB::AbortTids* _msg = _internal_mutable_abort_tids();
   // @@protoc_insertion_point(field_mutable:PB.MessageProto.abort_tids)
   return _msg;
+}
+
+// string debug_info = 31;
+inline void MessageProto::clear_debug_info() {
+  debug_info_.ClearToEmpty();
+}
+inline const std::string& MessageProto::debug_info() const {
+  // @@protoc_insertion_point(field_get:PB.MessageProto.debug_info)
+  return _internal_debug_info();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void MessageProto::set_debug_info(ArgT0&& arg0, ArgT... args) {
+ 
+ debug_info_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:PB.MessageProto.debug_info)
+}
+inline std::string* MessageProto::mutable_debug_info() {
+  std::string* _s = _internal_mutable_debug_info();
+  // @@protoc_insertion_point(field_mutable:PB.MessageProto.debug_info)
+  return _s;
+}
+inline const std::string& MessageProto::_internal_debug_info() const {
+  return debug_info_.Get();
+}
+inline void MessageProto::_internal_set_debug_info(const std::string& value) {
+  
+  debug_info_.Set(value, GetArenaForAllocation());
+}
+inline std::string* MessageProto::_internal_mutable_debug_info() {
+  
+  return debug_info_.Mutable(GetArenaForAllocation());
+}
+inline std::string* MessageProto::release_debug_info() {
+  // @@protoc_insertion_point(field_release:PB.MessageProto.debug_info)
+  return debug_info_.Release();
+}
+inline void MessageProto::set_allocated_debug_info(std::string* debug_info) {
+  if (debug_info != nullptr) {
+    
+  } else {
+    
+  }
+  debug_info_.SetAllocated(debug_info, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (debug_info_.IsDefault()) {
+    debug_info_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:PB.MessageProto.debug_info)
 }
 
 inline bool MessageProto::has_message_type() const {
