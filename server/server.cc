@@ -3,6 +3,11 @@
 
 #include "server.h"
 
+#ifdef TEST
+std::mutex cnt_mutex;
+uint64 done_txn_cnt = 0;
+#endif
+
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
@@ -32,7 +37,7 @@ namespace taas
     uint64_t Server::GenerateTid()
     {
         uint64_t ms = std::chrono::system_clock::now().time_since_epoch().count();
-        return (ms << 3) + static_cast<uint64>(config_->node_id_); // *8 + node_id
+        return (ms << 4) + static_cast<uint64>(config_->node_id_); // *8 + node_id
     }
 
     void Server::Execute(const Txn& txn, PB::ClientReply* reply)
@@ -149,7 +154,7 @@ namespace taas
             {
                 if (crdt_map_[epoch][stat.key()] == txn.txn_id())
                 {
-                    /* code */
+                    // don't eliminate
                 }
                 else
                 {
@@ -164,30 +169,27 @@ namespace taas
     {
         while (!deconstructor_invoked_)
         {
-            double start_time = GetTime();
+            uint64 start_time = GetTime();
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
+            PB::Txn *txn = new PB::Txn();
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
-
-                PB::Txn *txn = new PB::Txn();
                 client_->GetTxn(&txn, GenerateTid());
                 txn->set_start_epoch(cur_epoch);
-                txn->set_status(PB::TxnStatus::EXEC);
-                txn->set_master_replica(config_->replica_id_);
-                txn->set_master_node(local_server_id_);
+                txn->set_status(PB::TxnStatus::PEND);
+                txn->set_start_ts(GetTime());
                 local_txns_[cur_epoch].push_back(*txn);
-                delete txn;
             }
+            delete txn;
 
             LOG(INFO) << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
             thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
-
             epoch_manager_->AddPhysicalEpoch();
-        } 
+        }
     }
 
     std::vector<PB::MessageProto>* Server::Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch)
@@ -196,7 +198,7 @@ namespace taas
         std::string channel = "Shard_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         std::map<uint32, PB::MessageProto> batch_subtxns;
-        // prepare msg for all in-region peers
+        // prepare msg for sending to in region nodes
         for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
             if (iter->second->replica_id != config_->replica_id_)
@@ -226,10 +228,7 @@ namespace taas
                     PB::Txn subtxn;
                     subtxn.set_txn_id(txn.txn_id());
                     subtxn.set_start_epoch(txn.start_epoch());
-                    subtxn.set_status(txn.status());
-                    // set responsible node as master
-                    subtxn.set_master_replica(txn.master_replica());
-                    subtxn.set_master_node(txn.master_node());
+                    subtxn.set_status(PB::TxnStatus::EXEC);
                     subtxns[machine_id] = subtxn;
                 }
                 subtxns[machine_id].add_commands()->CopyFrom(stat);
@@ -285,6 +284,7 @@ namespace taas
             }
         }
 
+        // send the whole subtxns in region to other replica's counterpart
         for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
             if (iter->second->replica_id != config_->replica_id_ && iter->second->partition_id == config_->partition_id_)
@@ -323,10 +323,10 @@ namespace taas
     std::vector<PB::Txn>* Server::Merge(const std::vector<PB::MessageProto>& inregion_subtxns, const std::vector<PB::MessageProto>& outregion_subtxns, uint64 epoch)
     {
         LOG(INFO) << "Start Merge";
-        std::string channel = "Merge" + std::to_string(epoch);
+        std::string channel = "Merge_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         std::set<uint64> abort_subtxn_set;
-        // write intent
+        // write intent for local txns and remote txns
         //  local txns
         for (auto &&subtxns : inregion_subtxns)
         {
@@ -335,7 +335,6 @@ namespace taas
                 WriteIntent(subtxn, epoch);
             }
         }
-        //  remote txns
         for (auto &&subtxns : outregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
@@ -344,16 +343,14 @@ namespace taas
             }
         }
 
-        // prepare reply msg for every in-region servers
+        // prepare reply messages for in-region servers
         std::map<uint32, PB::MessageProto> batch_replies;
         for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); 
             iter != config_->all_nodes_.end(); ++iter)
         {
             // skip out-region nodes
             if (iter->second->replica_id != config_->replica_id_)
-            {
                 continue;
-            }
             int remote_server_id = iter->first;
             PB::MessageProto mp;
             mp.set_src_node_id(local_server_id_);
@@ -404,9 +401,8 @@ namespace taas
                 batch_replies[shadow_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
             }
         }
-        
 
-        // send replies msg to in-region peers except itself
+        // send replies messages to in-region peers except itself
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
@@ -461,8 +457,9 @@ namespace taas
                 {
                     committable_subtxns->push_back(subtxn);
                 }
-            }
+            }            
         }
+        
 
         for (auto &&subtxns : outregion_subtxns)
         {
@@ -503,15 +500,35 @@ namespace taas
             return total_write_cnt == success_write_cnt ? true : false;
         else
             return success_write_cnt ? false : true;
-        
     }
+    void Server::PrintStatistic(uint32 epoch)
+    {
+        std::string filename = "./report." + UInt32ToString(local_server_id_) + "." + UInt32ToString(epoch);
+        std::ofstream file(filename);
+        std::string report;
+        uint64 avg_lantency = 0;
+        uint32 total_txn_cnt = local_txns_[epoch].size();
+        cnt_mutex.lock();
+        done_txn_cnt += total_txn_cnt;
+        // txns per second
+        report.append("avg_throught : " + UInt64ToString(done_txn_cnt * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
+        cnt_mutex.unlock();
+        for (size_t i = 0; i < total_txn_cnt; i++)
+        {
+            uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
+            avg_lantency += single_latency;
+        }
 
+        report.append("avg_lantency : " + UInt64ToString(avg_lantency / total_txn_cnt) + "\n");
+        file << report;
+    }
     // worker
     void Server::Work(uint64 epoch)
     {
+        std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
-        // process distribute & collect all in-region subtxns
+        // process distribute & collect all in-region subtxns        
         inregion_subtxns = Distribute(local_txns_[epoch], epoch);
         // process replicate & collect all out-region subtxns
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
@@ -519,6 +536,10 @@ namespace taas
         // return value : kvs all will write in db 
         committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
         // atomic batch write in
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+            local_txns_[epoch][i].set_end_ts(GetTime());
+        
+        PrintStatistic(epoch);
         BatchWrite(committable_subtxns);
 
         // Check Correctness
@@ -544,11 +565,14 @@ namespace taas
             }
         }
         if (!atomic_test)
-        {
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
-        }
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
-    } 
+    }
+
+    void Server::Join()
+    {
+        worker_.join();
+    }
 } // namespace taas
 
 

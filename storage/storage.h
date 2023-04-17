@@ -7,7 +7,8 @@ class Storage
 {
 private:
     std::map<std::string, std::string>* kvs_;
-    std::mutex mtx_;
+    std::mutex write_mtx_;
+    std::mutex read_mtx_;
 public:
     Storage(/* args */);
     ~Storage();

@@ -29,7 +29,7 @@ namespace taas
         // for local merge <key, tid>
         std::map<std::string, uint64> crdt_map_[kMaxEpoch];
         // local generate txn <epoch-id, tnxs>
-        std::map<uint64, std::vector<PB::Txn> > local_txns_;
+        std::map<uint64, std::vector<PB::Txn>> local_txns_;
 
         uint32_t local_server_id_;
 
@@ -44,6 +44,7 @@ namespace taas
         bool Validate(const PB::Txn& txn, uint64 epoch);
 
         bool CheckAtomic(const PB::Txn& txn, bool committed);
+        void PrintStatistic(uint32 epoch);
 
         std::thread worker_;
     public:
@@ -56,6 +57,7 @@ namespace taas
 
         // worker
         void Work(uint64 epoch);
+        void Join();
     };
 } // namespace tass
 

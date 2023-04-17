@@ -11,7 +11,7 @@ namespace taas
     private:
         static EpochManager* em_;
 
-        double epoch_duration_; // s
+        double epoch_duration_; // ms
         std::atomic<uint64> cur_epoch_;
         bool deconstructor_invoked_;
 

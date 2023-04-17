@@ -43,10 +43,10 @@ message Txn {
 
     repeated Command commands = 4;
 
-    uint32 master_replica = 5;
-    uint32 master_node = 6;
-
     TxnStatus status = 7;
+
+    uint64 start_ts = 8;
+    uint64 end_ts = 9;
 }
 
 message ClientRequest {

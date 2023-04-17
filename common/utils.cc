@@ -27,10 +27,10 @@ vector<string> SplitString(const string& input, char delimiter) {
   return result;
 }
 
-double GetTime() {
+uint64 GetTime() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  return tv.tv_sec + tv.tv_usec/1e6;
+  return (tv.tv_sec * 1000000LL + tv.tv_usec) / 1000;
 }
 
 uint32 FNVHash(const string& key) {

@@ -55,8 +55,8 @@ PROTOBUF_CONSTEXPR Txn::Txn(
   , txn_id_(uint64_t{0u})
   , start_epoch_(uint64_t{0u})
   , end_epoch_(uint64_t{0u})
-  , master_replica_(0u)
-  , master_node_(0u)
+  , start_ts_(uint64_t{0u})
+  , end_ts_(uint64_t{0u})
   , status_(0)
 {}
 struct TxnDefaultTypeInternal {
@@ -183,9 +183,9 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::PB::Txn, start_epoch_),
   PROTOBUF_FIELD_OFFSET(::PB::Txn, end_epoch_),
   PROTOBUF_FIELD_OFFSET(::PB::Txn, commands_),
-  PROTOBUF_FIELD_OFFSET(::PB::Txn, master_replica_),
-  PROTOBUF_FIELD_OFFSET(::PB::Txn, master_node_),
   PROTOBUF_FIELD_OFFSET(::PB::Txn, status_),
+  PROTOBUF_FIELD_OFFSET(::PB::Txn, start_ts_),
+  PROTOBUF_FIELD_OFFSET(::PB::Txn, end_ts_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::PB::ClientRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -267,33 +267,33 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\rmessage.proto\022\002PB\" \n\004Node\022\n\n\002ip\030\001 \001(\t\022"
   "\014\n\004port\030\002 \001(\r\"\?\n\007Command\022\030\n\004type\030\001 \001(\0162\n"
-  ".PB.OpType\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001(\t\"\250"
+  ".PB.OpType\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001(\t\"\235"
   "\001\n\003Txn\022\016\n\006txn_id\030\001 \001(\004\022\023\n\013start_epoch\030\002 "
   "\001(\004\022\021\n\tend_epoch\030\003 \001(\004\022\035\n\010commands\030\004 \003(\013"
-  "2\013.PB.Command\022\026\n\016master_replica\030\005 \001(\r\022\023\n"
-  "\013master_node\030\006 \001(\r\022\035\n\006status\030\007 \001(\0162\r.PB."
-  "TxnStatus\"B\n\rClientRequest\022\033\n\tdest_node\030"
-  "\001 \001(\0132\010.PB.Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"7\n"
-  "\tBatchTxns\022\023\n\013start_epoch\030\001 \001(\004\022\025\n\004txns\030"
-  "\002 \003(\0132\007.PB.Txn\"\013\n\tHeartBeat\"1\n\tAbortTids"
-  "\022\023\n\013start_epoch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\313"
-  "\002\n\014MessageProto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013"
-  "src_channel\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022"
-  "\024\n\014dest_channel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB"
-  ".MessageProto.MessageType\022#\n\nbatch_txns\030"
-  "\025 \001(\0132\r.PB.BatchTxnsH\000\022#\n\nheart_beat\030\026 \001"
-  "(\0132\r.PB.HeartBeatH\000\022#\n\nabort_tids\030\027 \001(\0132"
-  "\r.PB.AbortTidsH\000\":\n\013MessageType\022\r\n\tHEART"
-  "BEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORTTIDS\020\002B\016\n\014"
-  "message_type\"2\n\013ClientReply\022\020\n\010exec_res\030"
-  "\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpType\022\013\n\007IN"
-  "VALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003*6\n"
-  "\tTxnStatus\022\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022\t\n\005ABORT\020"
-  "\002\022\n\n\006COMMIT\020\003b\006proto3"
+  "2\013.PB.Command\022\035\n\006status\030\007 \001(\0162\r.PB.TxnSt"
+  "atus\022\020\n\010start_ts\030\010 \001(\004\022\016\n\006end_ts\030\t \001(\004\"B"
+  "\n\rClientRequest\022\033\n\tdest_node\030\001 \001(\0132\010.PB."
+  "Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"7\n\tBatchTxns\022"
+  "\023\n\013start_epoch\030\001 \001(\004\022\025\n\004txns\030\002 \003(\0132\007.PB."
+  "Txn\"\013\n\tHeartBeat\"1\n\tAbortTids\022\023\n\013start_e"
+  "poch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\313\002\n\014MessageP"
+  "roto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013src_channel"
+  "\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022\024\n\014dest_cha"
+  "nnel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB.MessagePro"
+  "to.MessageType\022#\n\nbatch_txns\030\025 \001(\0132\r.PB."
+  "BatchTxnsH\000\022#\n\nheart_beat\030\026 \001(\0132\r.PB.Hea"
+  "rtBeatH\000\022#\n\nabort_tids\030\027 \001(\0132\r.PB.AbortT"
+  "idsH\000\":\n\013MessageType\022\r\n\tHEARTBEAT\020\000\022\r\n\tB"
+  "ATCHTXNS\020\001\022\r\n\tABORTTIDS\020\002B\016\n\014message_typ"
+  "e\"2\n\013ClientReply\022\020\n\010exec_res\030\001 \001(\010\022\021\n\tqu"
+  "ery_set\030\002 \003(\t*3\n\006OpType\022\013\n\007INVALID\020\000\022\007\n\003"
+  "GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DELETE\020\003*6\n\tTxnStatus\022"
+  "\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022\t\n\005ABORT\020\002\022\n\n\006COMMIT"
+  "\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 981, descriptor_table_protodef_message_2eproto,
+    false, false, 970, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -959,28 +959,28 @@ const char* Txn::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
         } else
           goto handle_unusual;
         continue;
-      // uint32 master_replica = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
-          master_replica_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // uint32 master_node = 6;
-      case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
-          master_node_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
       // .PB.TxnStatus status = 7;
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
           _internal_set_status(static_cast<::PB::TxnStatus>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 start_ts = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          start_ts_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 end_ts = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 72)) {
+          end_ts_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -1039,23 +1039,23 @@ uint8_t* Txn::_InternalSerialize(
         InternalWriteMessage(4, repfield, repfield.GetCachedSize(), target, stream);
   }
 
-  // uint32 master_replica = 5;
-  if (this->_internal_master_replica() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(5, this->_internal_master_replica(), target);
-  }
-
-  // uint32 master_node = 6;
-  if (this->_internal_master_node() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(6, this->_internal_master_node(), target);
-  }
-
   // .PB.TxnStatus status = 7;
   if (this->_internal_status() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteEnumToArray(
       7, this->_internal_status(), target);
+  }
+
+  // uint64 start_ts = 8;
+  if (this->_internal_start_ts() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(8, this->_internal_start_ts(), target);
+  }
+
+  // uint64 end_ts = 9;
+  if (this->_internal_end_ts() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(9, this->_internal_end_ts(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -1096,14 +1096,14 @@ size_t Txn::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_end_epoch());
   }
 
-  // uint32 master_replica = 5;
-  if (this->_internal_master_replica() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_master_replica());
+  // uint64 start_ts = 8;
+  if (this->_internal_start_ts() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_start_ts());
   }
 
-  // uint32 master_node = 6;
-  if (this->_internal_master_node() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_master_node());
+  // uint64 end_ts = 9;
+  if (this->_internal_end_ts() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_end_ts());
   }
 
   // .PB.TxnStatus status = 7;
@@ -1144,11 +1144,11 @@ void Txn::MergeFrom(const Txn& from) {
   if (from._internal_end_epoch() != 0) {
     _internal_set_end_epoch(from._internal_end_epoch());
   }
-  if (from._internal_master_replica() != 0) {
-    _internal_set_master_replica(from._internal_master_replica());
+  if (from._internal_start_ts() != 0) {
+    _internal_set_start_ts(from._internal_start_ts());
   }
-  if (from._internal_master_node() != 0) {
-    _internal_set_master_node(from._internal_master_node());
+  if (from._internal_end_ts() != 0) {
+    _internal_set_end_ts(from._internal_end_ts());
   }
   if (from._internal_status() != 0) {
     _internal_set_status(from._internal_status());

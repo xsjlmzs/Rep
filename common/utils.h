@@ -32,9 +32,8 @@ template<> string TypeName<T>() { return #T; }
 // Splits a string on 'delimiter'.
 vector<string> SplitString(const string& input, char delimiter);
 
-// Returns the number of seconds since midnight according to local system time,
-// to the nearest microsecond.
-double GetTime();
+// Returns the number of microseconds since midnight according to local system time,
+uint64 GetTime();
 
 // The FNV-1 and FNV-1a hashes as described by Fowler-Noll-Vo.
 uint32 FNVHash(const string& key);

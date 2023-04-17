@@ -627,8 +627,8 @@ class Txn final :
     kTxnIdFieldNumber = 1,
     kStartEpochFieldNumber = 2,
     kEndEpochFieldNumber = 3,
-    kMasterReplicaFieldNumber = 5,
-    kMasterNodeFieldNumber = 6,
+    kStartTsFieldNumber = 8,
+    kEndTsFieldNumber = 9,
     kStatusFieldNumber = 7,
   };
   // repeated .PB.Command commands = 4;
@@ -676,22 +676,22 @@ class Txn final :
   void _internal_set_end_epoch(uint64_t value);
   public:
 
-  // uint32 master_replica = 5;
-  void clear_master_replica();
-  uint32_t master_replica() const;
-  void set_master_replica(uint32_t value);
+  // uint64 start_ts = 8;
+  void clear_start_ts();
+  uint64_t start_ts() const;
+  void set_start_ts(uint64_t value);
   private:
-  uint32_t _internal_master_replica() const;
-  void _internal_set_master_replica(uint32_t value);
+  uint64_t _internal_start_ts() const;
+  void _internal_set_start_ts(uint64_t value);
   public:
 
-  // uint32 master_node = 6;
-  void clear_master_node();
-  uint32_t master_node() const;
-  void set_master_node(uint32_t value);
+  // uint64 end_ts = 9;
+  void clear_end_ts();
+  uint64_t end_ts() const;
+  void set_end_ts(uint64_t value);
   private:
-  uint32_t _internal_master_node() const;
-  void _internal_set_master_node(uint32_t value);
+  uint64_t _internal_end_ts() const;
+  void _internal_set_end_ts(uint64_t value);
   public:
 
   // .PB.TxnStatus status = 7;
@@ -714,8 +714,8 @@ class Txn final :
   uint64_t txn_id_;
   uint64_t start_epoch_;
   uint64_t end_epoch_;
-  uint32_t master_replica_;
-  uint32_t master_node_;
+  uint64_t start_ts_;
+  uint64_t end_ts_;
   int status_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
@@ -2127,46 +2127,6 @@ Txn::commands() const {
   return commands_;
 }
 
-// uint32 master_replica = 5;
-inline void Txn::clear_master_replica() {
-  master_replica_ = 0u;
-}
-inline uint32_t Txn::_internal_master_replica() const {
-  return master_replica_;
-}
-inline uint32_t Txn::master_replica() const {
-  // @@protoc_insertion_point(field_get:PB.Txn.master_replica)
-  return _internal_master_replica();
-}
-inline void Txn::_internal_set_master_replica(uint32_t value) {
-  
-  master_replica_ = value;
-}
-inline void Txn::set_master_replica(uint32_t value) {
-  _internal_set_master_replica(value);
-  // @@protoc_insertion_point(field_set:PB.Txn.master_replica)
-}
-
-// uint32 master_node = 6;
-inline void Txn::clear_master_node() {
-  master_node_ = 0u;
-}
-inline uint32_t Txn::_internal_master_node() const {
-  return master_node_;
-}
-inline uint32_t Txn::master_node() const {
-  // @@protoc_insertion_point(field_get:PB.Txn.master_node)
-  return _internal_master_node();
-}
-inline void Txn::_internal_set_master_node(uint32_t value) {
-  
-  master_node_ = value;
-}
-inline void Txn::set_master_node(uint32_t value) {
-  _internal_set_master_node(value);
-  // @@protoc_insertion_point(field_set:PB.Txn.master_node)
-}
-
 // .PB.TxnStatus status = 7;
 inline void Txn::clear_status() {
   status_ = 0;
@@ -2185,6 +2145,46 @@ inline void Txn::_internal_set_status(::PB::TxnStatus value) {
 inline void Txn::set_status(::PB::TxnStatus value) {
   _internal_set_status(value);
   // @@protoc_insertion_point(field_set:PB.Txn.status)
+}
+
+// uint64 start_ts = 8;
+inline void Txn::clear_start_ts() {
+  start_ts_ = uint64_t{0u};
+}
+inline uint64_t Txn::_internal_start_ts() const {
+  return start_ts_;
+}
+inline uint64_t Txn::start_ts() const {
+  // @@protoc_insertion_point(field_get:PB.Txn.start_ts)
+  return _internal_start_ts();
+}
+inline void Txn::_internal_set_start_ts(uint64_t value) {
+  
+  start_ts_ = value;
+}
+inline void Txn::set_start_ts(uint64_t value) {
+  _internal_set_start_ts(value);
+  // @@protoc_insertion_point(field_set:PB.Txn.start_ts)
+}
+
+// uint64 end_ts = 9;
+inline void Txn::clear_end_ts() {
+  end_ts_ = uint64_t{0u};
+}
+inline uint64_t Txn::_internal_end_ts() const {
+  return end_ts_;
+}
+inline uint64_t Txn::end_ts() const {
+  // @@protoc_insertion_point(field_get:PB.Txn.end_ts)
+  return _internal_end_ts();
+}
+inline void Txn::_internal_set_end_ts(uint64_t value) {
+  
+  end_ts_ = value;
+}
+inline void Txn::set_end_ts(uint64_t value) {
+  _internal_set_end_ts(value);
+  // @@protoc_insertion_point(field_set:PB.Txn.end_ts)
 }
 
 // -------------------------------------------------------------------

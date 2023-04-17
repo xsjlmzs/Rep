@@ -8,7 +8,7 @@ namespace taas
 
     EpochManager* EpochManager::em_ = nullptr;
 
-    EpochManager::EpochManager(int epoch_duration = 1) : epoch_duration_(epoch_duration)
+    EpochManager::EpochManager(int epoch_duration = 100) : epoch_duration_(epoch_duration)
     {
         std::atomic_init(&cur_epoch_, 0);
         deconstructor_invoked_ = false;
