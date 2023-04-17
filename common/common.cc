@@ -188,7 +188,7 @@ void Connection::DeleteChannel(std::string channel)
 
 void Connection::Run()
 {
-
+    PB::MessageProto mp;
     std::string new_channel;
     zmqpp::message_t msg;
     while (!deconstructor_invoked_)
@@ -228,7 +228,6 @@ void Connection::Run()
         // recv msg
         if (remote_in_->receive(msg, true))
         {
-            PB::MessageProto mp;
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
@@ -242,10 +241,10 @@ void Connection::Run()
             {
                 channel_results_.Lookup(mp.dest_channel())->Push(mp);
             }
+            mp.Clear();
         }
 
         // send msg
-        PB::MessageProto mp;
         if (send_message_queue_->Pop(&mp))
         {
             if (mp.dest_node_id() == config_->node_id_)
@@ -264,7 +263,8 @@ void Connection::Run()
                 std::string mp_str;
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
-                remote_out_[mp.dest_node_id()]->send(msg, false);
+                bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
+                LOG(INFO) << " epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_channel() << " " << res;
             }
         }
     }
