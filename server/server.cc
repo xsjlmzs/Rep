@@ -247,7 +247,7 @@ namespace taas
         {
             conn_->Send(iter->second);
         }
-
+        LOG(INFO) << "distribute complete and barrier";
         // barrier : wait for all other msg arrive
         int recv_msg_cnt = 0;
         PB::MessageProto recv_subtxn;
@@ -522,18 +522,18 @@ namespace taas
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
         // process distribute & collect all in-region subtxns
-        LOG(INFO) << "epoch : " << epoch << "Start Distribute";
+        LOG(INFO) << "epoch : " << epoch << " Start Distribute";
         inregion_subtxns = Distribute(local_txns_[epoch], epoch);
-        LOG(INFO) << "epoch : " << epoch << "Distribute Finish";
+        LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
         // process replicate & collect all out-region subtxns
-        LOG(INFO) << "epoch : " << epoch << "Start Replicate";
+        LOG(INFO) << "epoch : " << epoch << " Start Replicate";
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
-        LOG(INFO) << "epoch : " << epoch << "Replicate Finish";
+        LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
         // determinstic process merge
         // return value : kvs all will write in db 
-        LOG(INFO) << "epoch : " << epoch << "Start Merge";
+        LOG(INFO) << "epoch : " << epoch << " Start Merge";
         committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
-        LOG(INFO) << "epoch : " << epoch << "Merge Finish";
+        LOG(INFO) << "epoch : " << epoch << " Merge Finish";
         // atomic batch write in
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
             local_txns_[epoch][i].set_end_ts(GetTime());

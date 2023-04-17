@@ -10,18 +10,13 @@ std::string instruction[]{"INVALID", "GET", "PUT", "DELETE"};
 
 int main(int argc, char *argv[])
 {
+    FLAGS_log_dir = "./";
     google::InitGoogleLogging(argv[0]);
     google::SetStderrLogging(google::GLOG_INFO);
     using google::INFO;
     using google::ERROR;
     using google::WARNING;
     using google::FATAL;
-
-    for (size_t i = 0; i < 10; i++)
-    {
-        LOG(INFO) << "rand() = " << rand() ;
-    }
-    
 
     // parse command line 
     while (true)
