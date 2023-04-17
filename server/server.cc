@@ -246,6 +246,7 @@ namespace taas
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_subtxns.begin(); iter != batch_subtxns.end(); ++iter)
         {
             conn_->Send(iter->second);
+            LOG(INFO) << "epoch : " << epoch << iter->second.dest_node_id() << " & " << iter->second.dest_channel();
         }
         LOG(INFO) << "epoch : " << epoch << " have sent " << batch_subtxns.size() << " Distribute() msgs and barrier";
         // barrier : wait for all other msg arrive

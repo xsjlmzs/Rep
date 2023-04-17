@@ -277,14 +277,7 @@ bool Connection::GetMessage(const std::string& channel, PB::MessageProto* msg)
         msg = nullptr;
         return false;
     }
-    if (channel_results_.Lookup(channel)->Pop(msg))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return channel_results_.Lookup(channel)->Pop(msg);
 }
 
 void Connection::Send(const PB::MessageProto& msg)
