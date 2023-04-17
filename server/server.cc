@@ -183,7 +183,7 @@ namespace taas
             }
             delete txn;
 
-            LOG(INFO) << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
+            LOG(INFO) << " epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
             thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
@@ -194,7 +194,6 @@ namespace taas
 
     std::vector<PB::MessageProto>* Server::Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch)
     {
-        LOG(INFO) << "Start Distribute";
         std::string channel = "Shard_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         std::map<uint32, PB::MessageProto> batch_subtxns;
@@ -248,7 +247,6 @@ namespace taas
         {
             conn_->Send(iter->second);
         }
-        LOG(INFO) << "send subtxns msg finish";
 
         // barrier : wait for all other msg arrive
         int recv_msg_cnt = 0;
@@ -263,14 +261,12 @@ namespace taas
             }
         }
         conn_->DeleteChannel(channel);
-        LOG(INFO) << "Distribute Finish";
         return inregion_subtxns;
     }
 
     // send in-region subtxn to all other region's peer node
     std::vector<PB::MessageProto>*  Server::Replicate(const std::vector<PB::MessageProto>& inregion_subtxns, uint64 epoch)
     {
-        LOG(INFO) << "Start Replicate";
         std::string channel = "Replica_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
@@ -315,14 +311,12 @@ namespace taas
             }
         }
         conn_->DeleteChannel(channel);
-        LOG(INFO) << "Replicate Finish";
         return outregion_subtxns;
     }
 
     // process crdt merge
     std::vector<PB::Txn>* Server::Merge(const std::vector<PB::MessageProto>& inregion_subtxns, const std::vector<PB::MessageProto>& outregion_subtxns, uint64 epoch)
     {
-        LOG(INFO) << "Start Merge";
         std::string channel = "Merge_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         std::set<uint64> abort_subtxn_set;
@@ -477,7 +471,6 @@ namespace taas
         }
         
         conn_->DeleteChannel(channel);
-        LOG(INFO) << "Merge Finish";
         return committable_subtxns;
     }
 
@@ -528,13 +521,19 @@ namespace taas
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
-        // process distribute & collect all in-region subtxns        
+        // process distribute & collect all in-region subtxns
+        LOG(INFO) << "epoch : " << epoch << "Start Distribute";
         inregion_subtxns = Distribute(local_txns_[epoch], epoch);
+        LOG(INFO) << "epoch : " << epoch << "Distribute Finish";
         // process replicate & collect all out-region subtxns
+        LOG(INFO) << "epoch : " << epoch << "Start Replicate";
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
+        LOG(INFO) << "epoch : " << epoch << "Replicate Finish";
         // determinstic process merge
         // return value : kvs all will write in db 
+        LOG(INFO) << "epoch : " << epoch << "Start Merge";
         committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
+        LOG(INFO) << "epoch : " << epoch << "Merge Finish";
         // atomic batch write in
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
             local_txns_[epoch][i].set_end_ts(GetTime());

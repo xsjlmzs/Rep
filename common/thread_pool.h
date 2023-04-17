@@ -97,7 +97,7 @@ private:
     std::condition_variable m_conditional_lock; // 线程环境锁，可以让线程处于休眠或者唤醒状态
 public:
     // 线程池构造函数
-    ThreadPool(const int n_threads = 4)
+    ThreadPool(const int n_threads = 8)
         : m_threads(std::vector<std::thread>(n_threads)), m_shutdown(false)
     {
     }
