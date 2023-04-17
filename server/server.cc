@@ -247,7 +247,7 @@ namespace taas
         {
             conn_->Send(iter->second);
         }
-        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
+        LOG(INFO) << "epoch : " << epoch << " have sent " << batch_subtxns.size() << " Distribute() msgs and barrier";
         // barrier : wait for all other msg arrive
         int recv_msg_cnt = 0;
         PB::MessageProto recv_subtxn;
@@ -280,6 +280,7 @@ namespace taas
             }
         }
 
+        int sent_msg = 0;
         // send the whole subtxns in region to other replica's counterpart
         for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
@@ -293,11 +294,12 @@ namespace taas
                 mp.set_dest_channel(channel);
                 mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
                 conn_->Send(mp);
+                sent_msg ++;
             }
         }
         delete send_msg_ptr;
         
-        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
+        LOG(INFO) << "epoch : " << epoch << " Replicate() have sent " << sent_msg << " msgs and barrier";
         // barrier : wait for the rest msg from out-region's server
         int counter = 1; // except itself
         PB::MessageProto recv_subtxn;
@@ -398,6 +400,7 @@ namespace taas
         }
 
         // send replies messages to in-region peers except itself
+        int sent_cnt = 0;
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
@@ -405,9 +408,10 @@ namespace taas
             if(remote_server_id == local_server_id_)
                 continue;
             conn_->Send(iter->second);
+            sent_cnt++;
         }
         
-        LOG(INFO) << "epoch : " << epoch << "distribute complete and barrier";
+LOG(INFO) << "epoch : " << epoch << " have sent " << sent_cnt << " Merge() msgs and barrier";
         int recv_msg_cnt = 1;
         std::vector<PB::MessageProto> recv_replies;
 
