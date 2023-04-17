@@ -260,6 +260,7 @@ namespace taas
                 inregion_subtxns->push_back(recv_subtxn);
             }
         }
+        LOG(INFO) << "epoch : " << epoch << " Distribute() barrier end"; 
         conn_->DeleteChannel(channel);
         return inregion_subtxns;
     }
@@ -313,6 +314,7 @@ namespace taas
                 outregion_subtxns->push_back(recv_subtxn);
             }
         }
+        LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
         conn_->DeleteChannel(channel);
         return outregion_subtxns;
     }
@@ -411,7 +413,7 @@ namespace taas
             sent_cnt++;
         }
         
-LOG(INFO) << "epoch : " << epoch << " have sent " << sent_cnt << " Merge() msgs and barrier";
+        LOG(INFO) << "epoch : " << epoch << " have sent " << sent_cnt << " Merge() msgs and barrier";
         int recv_msg_cnt = 1;
         std::vector<PB::MessageProto> recv_replies;
 
@@ -426,7 +428,7 @@ LOG(INFO) << "epoch : " << epoch << " have sent " << sent_cnt << " Merge() msgs 
             }
         }
         delete reply_msg;
-
+        LOG(INFO) << "epoch : " << epoch << " Merge() barrier end"; 
         // union abort set
         for (size_t i = 0; i < recv_replies.size(); i++)
         {
