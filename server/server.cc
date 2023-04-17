@@ -167,10 +167,15 @@ namespace taas
 
     void Server::Run()
     {
+        uint32 max_epoch = 10;
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
+            if (cur_epoch > max_epoch)
+            {
+                break;
+            }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             PB::Txn *txn = new PB::Txn();
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())

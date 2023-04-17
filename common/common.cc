@@ -231,7 +231,7 @@ void Connection::Run()
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
-
+            LOG(INFO) << " epoch : " << mp.debug_info() << " " << mp.src_node_id() << " " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
             {
                 // haven't existed channel
