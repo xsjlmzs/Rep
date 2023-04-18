@@ -124,7 +124,7 @@ namespace taas
             }
         }
         // sync complete
-        conn_->DeleteChannel("synchronization_sequencer_channel");
+        conn_->DeleteChannel("Heartbeat");
     }
 
     void Server::WriteIntent(const PB::Txn& txn, uint64 epoch)
