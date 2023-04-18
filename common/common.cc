@@ -231,7 +231,7 @@ void Connection::Run()
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
-            LOG(INFO) << " epoch : " << mp.debug_info() << " " << mp.src_node_id() << " " << mp.dest_channel();
+            LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.src_node_id() << " " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
             {
                 // haven't existed channel
@@ -264,7 +264,7 @@ void Connection::Run()
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
-                LOG(INFO) << " epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_channel() << " " << res;
+                LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_channel() << " " << res;
             }
         }
     }
@@ -284,7 +284,7 @@ void Connection::Send(const PB::MessageProto& msg)
 {
     PB::MessageProto mp;
     mp.CopyFrom(msg);
-    LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.dest_node_id() << " & " << mp.dest_channel();
+    // LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.dest_node_id() << " & " << mp.dest_channel();
     send_message_queue_->Push(mp);
 }
 

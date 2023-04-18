@@ -356,7 +356,7 @@ namespace taas
             iter != config_->all_nodes_.end(); ++iter)
         {
             // skip out-region nodes
-            if (iter->second->replica_id != config_->replica_id_)
+            if (iter->second->replica_id != config_->replica_id_ && iter->first != local_server_id_)
                 continue;
             int remote_server_id = iter->first;
             PB::MessageProto mp;
@@ -374,19 +374,24 @@ namespace taas
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
                 PB::Txn new_txn(subtxn);
+                uint32 remote_node_id = subtxns.src_node_id();
                 bool validate_res = Validate(new_txn, epoch);
                 if (validate_res)
                 {
                     ExecRead(new_txn);
                     new_txn.set_status(PB::COMMIT);
+                    batch_replies[remote_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
                 }
                 else
                 {
                     new_txn.set_status(PB::ABORT);
                     abort_subtxn_set.insert(new_txn.txn_id());
+                    for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
+                        iter != batch_replies.end(); ++iter)
+                    {
+                        iter->second.mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
+                    }      
                 }
-                uint32 remote_node_id = subtxns.src_node_id();
-                batch_replies[remote_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
             }
         }
         
@@ -402,10 +407,12 @@ namespace taas
                 {
                     new_txn.set_status(PB::ABORT);
                     abort_subtxn_set.insert(new_txn.txn_id());
+                    for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
+                        iter != batch_replies.end(); ++iter)
+                    {
+                        iter->second.mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
+                    } 
                 }
-                int remote_partition_id = subtxns.src_node_id() % config_->replica_size_;
-                uint32 shadow_node_id = config_->LookupMachineID(remote_partition_id);
-                batch_replies[shadow_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
             }
         }
 
@@ -414,9 +421,6 @@ namespace taas
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
-            uint32 remote_server_id = iter->first;
-            if(remote_server_id == local_server_id_)
-                continue;
             conn_->Send(iter->second);
             sent_cnt++;
         }
@@ -444,7 +448,7 @@ namespace taas
             {
                 if (subtxn.status() == PB::TxnStatus::COMMIT)
                 {
-                    // return read result
+                    // returned read result
                 }
                 else if (subtxn.status() == PB::TxnStatus::ABORT)
                 {
