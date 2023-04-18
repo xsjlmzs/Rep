@@ -79,7 +79,6 @@ private:
     int remote_port_; // listen in
     zmqpp::socket* remote_in_; // remote node in
     std::map<int, zmqpp::socket*> remote_out_;
-    std::mutex* send_mutex_;
 
     int client_port_;
     zmqpp::socket* client_resp_;

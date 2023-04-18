@@ -122,14 +122,14 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
     remote_in_->bind(remote_endpoint);
 
-    // port listen for client request 
-    // client_port_ = 9999;
-    // client_resp_ = new zmqpp::socket(cxt_, zmqpp::socket_type::reply);
-    // std::string client_endpoint = "tcp://*:" + std::to_string(client_port_);
-    // client_resp_->bind(client_endpoint);
+    // alloc 
+    new_channel_queue_ = new AtomicQueue<std::string>();
+    delete_channel_queue_ = new AtomicQueue<std::string>();
+    send_message_queue_ = new AtomicQueue<PB::MessageProto>();
+
+    Spin(0.1);
 
     // build socket
-    send_mutex_ = new std::mutex[config_->all_nodes_.size()];
     for (std::map<uint, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->second->node_id) {
@@ -139,10 +139,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
         }
     }
 
-    // alloc 
-    new_channel_queue_ = new AtomicQueue<std::string>();
-    delete_channel_queue_ = new AtomicQueue<std::string>();
-    send_message_queue_ = new AtomicQueue<PB::MessageProto>();
+
     thread_ = std::thread(&Connection::Run, this);
     LOG(INFO) << "Connection Init Complete";
     return ;
@@ -226,7 +223,7 @@ void Connection::Run()
         }
         
         // recv msg
-        if (remote_in_->receive(msg, false))
+        if (remote_in_->receive(msg, true))
         {
             std::string msg_str;
             msg >> msg_str;
