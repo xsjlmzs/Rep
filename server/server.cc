@@ -174,6 +174,8 @@ namespace taas
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             if (cur_epoch > max_epoch)
             {
+                thread_pool_->shutdown();
+                Spin(10);
                 break;
             }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
@@ -473,7 +475,6 @@ namespace taas
                 }
             }            
         }
-        
 
         for (auto &&subtxns : outregion_subtxns)
         {

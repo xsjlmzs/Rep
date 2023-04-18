@@ -75,8 +75,6 @@ int main(int argc, char *argv[])
     taas::Server* server = new taas::Server(config, conn, client);
     server->Join();     
 
-    usleep(10000000);
-
     google::ShutdownGoogleLogging();
     delete config, conn, client;
     return 0;
