@@ -226,7 +226,7 @@ void Connection::Run()
         }
         
         // recv msg
-        if (remote_in_->receive(msg, true))
+        if (remote_in_->receive(msg, false))
         {
             std::string msg_str;
             msg >> msg_str;
