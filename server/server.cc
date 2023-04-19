@@ -556,9 +556,10 @@ namespace taas
         std::vector<PB::Txn> *committable_subtxns;
         // process distribute & collect all in-region subtxns
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
-        inregion_subtxns = Distribute(local_txns_[epoch], epoch);
+        std::vector<PB::Txn> local_txns;
+        inregion_subtxns = Distribute(local_txns, epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
-        // // process replicate & collect all out-region subtxns
+        // process replicate & collect all out-region subtxns
         // LOG(INFO) << "epoch : " << epoch << " Start Replicate";
         // outregion_subtxns = Replicate(*inregion_subtxns, epoch);
         // LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
@@ -597,7 +598,7 @@ namespace taas
         //     }
         // }
         // if (!atomic_test)
-            LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
+        //     LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 
