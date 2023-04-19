@@ -118,7 +118,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
 
     LOG(INFO) << "Connection Start Init";
     remote_port_ = config_->all_nodes_[config_->node_id_]->port;
-    remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::sub);
+    remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
     remote_in_->bind(remote_endpoint);
 
@@ -133,7 +133,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     for (std::map<uint, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->second->node_id) {
-            remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::pub);
+            remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
             remote_out_[it->second->node_id]->connect(endpoint); 
         }
@@ -228,7 +228,7 @@ void Connection::Run()
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
-            LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.src_node_id() << " " << mp.dest_channel();
+            LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
             {
                 // haven't existed channel
@@ -261,7 +261,7 @@ void Connection::Run()
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
-                LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_channel() << " " << res;
+                LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel() << " " << res;
             }
         }
     }
@@ -281,7 +281,6 @@ void Connection::Send(const PB::MessageProto& msg)
 {
     PB::MessageProto mp;
     mp.CopyFrom(msg);
-    // LOG(INFO) << "epoch : " << mp.debug_info() << " " << mp.dest_node_id() << " & " << mp.dest_channel();
     send_message_queue_->Push(mp);
 }
 
