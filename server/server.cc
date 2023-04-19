@@ -173,12 +173,12 @@ namespace taas
         {
             uint64 start_time = GetTime();
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            if (cur_epoch >= max_epoch)
-            {
-                thread_pool_->shutdown();
-                Spin(1);
-                break;
-            }
+            // if (cur_epoch >= max_epoch)
+            // {
+            //     thread_pool_->shutdown();
+            //     Spin(1);
+            //     break;
+            // }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             PB::Txn *txn = new PB::Txn();
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
@@ -194,7 +194,8 @@ namespace taas
             LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
-            thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
+            Work(cur_epoch);
+            // thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             epoch_manager_->AddPhysicalEpoch();
         }
