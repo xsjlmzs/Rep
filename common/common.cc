@@ -118,7 +118,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
 
     LOG(INFO) << "Connection Start Init";
     remote_port_ = config_->all_nodes_[config_->node_id_]->port;
-    remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
+    remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::sub);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
     remote_in_->bind(remote_endpoint);
 
@@ -133,7 +133,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     for (std::map<uint, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->second->node_id) {
-            remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
+            remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::pub);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
             remote_out_[it->second->node_id]->connect(endpoint); 
         }
