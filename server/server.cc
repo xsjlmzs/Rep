@@ -181,16 +181,18 @@ namespace taas
             }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             PB::Txn *txn = new PB::Txn();
+            std::vector<PB::Txn> tmp_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
                 client_->GetTxn(&txn, GenerateTid());
                 txn->set_start_epoch(cur_epoch);
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
-                local_txns_.Lookup(cur_epoch).push_back(*txn);
+                tmp_txns.push_back(*txn);
                 // local_txns_[cur_epoch].push_back(*txn);
             }
             delete txn;
+            local_txns_.Put(cur_epoch, tmp_txns);
 
             LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_.Lookup(cur_epoch).size() << " txns collected, start distribute and merge";
             // process with all other shard peer
