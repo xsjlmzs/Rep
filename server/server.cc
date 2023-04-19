@@ -167,7 +167,7 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 10;
+        uint32 max_epoch = 8;
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
@@ -252,10 +252,8 @@ namespace taas
         // send batch_subtxns to all in-region peers
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_subtxns.begin(); iter != batch_subtxns.end(); ++iter)
         {
-            iter->second.set_debug_info(std::to_string(epoch));
-            LOG(INFO) << "epoch : " << epoch << iter->second.dest_node_id() << " & " << iter->second.dest_channel();
+            iter->second.set_debug_info("Distribute" + std::to_string(epoch));
             conn_->Send(iter->second);
-
         }
         LOG(INFO) << "epoch : " << epoch << " have sent " << batch_subtxns.size() << " Distribute() msgs and barrier";
         // barrier : wait for all other msg arrive
@@ -423,6 +421,7 @@ namespace taas
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
+            iter->second.set_debug_info("Merge" + std::to_string(epoch));
             conn_->Send(iter->second);
             sent_cnt++;
         }
