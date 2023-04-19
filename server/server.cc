@@ -168,7 +168,7 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 2;
+        uint32 max_epoch = 6;
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
@@ -206,7 +206,7 @@ namespace taas
         conn_->NewChannel(channel);
         std::map<uint32, PB::MessageProto> batch_subtxns;
         // prepare msg for sending to in region nodes
-        for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
+        for (std::map<uint32, Node*>::const_iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
             if (iter->second->replica_id != config_->replica_id_)
                continue;
@@ -270,7 +270,7 @@ namespace taas
             }
             else
             {
-                usleep(1000);
+                usleep(100);
             }
         }
         LOG(INFO) << "epoch : " << epoch << " Distribute() barrier end"; 
@@ -296,7 +296,7 @@ namespace taas
 
         int sent_msg = 0;
         // send the whole subtxns in region to other replica's counterpart
-        for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
+        for (std::map<uint32, Node*>::const_iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
             if (iter->second->replica_id != config_->replica_id_ && iter->second->partition_id == config_->partition_id_)
             {
@@ -328,7 +328,7 @@ namespace taas
             }
             else
             {
-                usleep(1000);
+                usleep(100);
             }
         }
         LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
@@ -361,7 +361,7 @@ namespace taas
 
         // prepare reply messages for in-region servers
         std::map<uint32, PB::MessageProto> batch_replies;
-        for (std::map<uint32, Node*>::iterator iter = config_->all_nodes_.begin(); 
+        for (std::map<uint32, Node*>::const_iterator iter = config_->all_nodes_.begin(); 
             iter != config_->all_nodes_.end(); ++iter)
         {
             // skip out-region nodes
@@ -450,7 +450,7 @@ namespace taas
             }
             else
             {
-                usleep(1000);
+                usleep(100);
             }
         }
         delete reply_msg;

@@ -202,7 +202,7 @@ void Connection::Run()
             AtomicQueue<PB::MessageProto>* channel_queue = new AtomicQueue<PB::MessageProto>();
 
             for (std::vector<PB::MessageProto>::iterator iter = undelivered_messages_[new_channel].begin();
-                iter < undelivered_messages_[new_channel].end(); ++iter)
+                iter != undelivered_messages_[new_channel].end(); ++iter)
             {
                 channel_queue->Push(*iter);
             }
@@ -223,7 +223,8 @@ void Connection::Run()
         }
         
         // recv msg
-        if (remote_in_->receive(msg, true))
+        bool got_req = remote_in_->receive(msg, true);
+        if (got_req)
         {
             std::string msg_str;
             msg >> msg_str;
@@ -240,7 +241,6 @@ void Connection::Run()
             }
             mp.Clear();
         }
-
         // send msg
         if (send_message_queue_->Pop(&mp))
         {
