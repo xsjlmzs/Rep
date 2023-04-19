@@ -29,7 +29,7 @@ namespace taas
         // for local merge <key, tid>
         std::map<std::string, uint64> crdt_map_[kMaxEpoch];
         // local generate txn <epoch-id, tnxs>
-        AtomicMap<uint64, std::vector<PB::Txn>> local_txns_;
+        std::map<uint64, std::vector<PB::Txn>> local_txns_;
 
         uint32_t local_server_id_;
 
@@ -56,7 +56,7 @@ namespace taas
         std::vector<PB::Txn>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker
-        void Work(uint64 epoch);
+        void Work(std::vector<PB::Txn> local_txns, uint64 epoch);
         void Join();
     };
 } // namespace tass

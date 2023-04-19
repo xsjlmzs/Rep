@@ -181,23 +181,21 @@ namespace taas
             }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             PB::Txn *txn = new PB::Txn();
-            std::vector<PB::Txn> tmp_txns;
+            std::vector<PB::Txn> local_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
                 client_->GetTxn(&txn, GenerateTid());
                 txn->set_start_epoch(cur_epoch);
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
-                tmp_txns.push_back(*txn);
-                // local_txns_[cur_epoch].push_back(*txn);
+                local_txns.push_back(*txn);
             }
             delete txn;
-            local_txns_.Put(cur_epoch, tmp_txns);
 
-            LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_.Lookup(cur_epoch).size() << " txns collected, start distribute and merge";
+            LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
-            thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
+            thread_pool_->submit(std::bind(&Server::Work, this, local_txns, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             epoch_manager_->AddPhysicalEpoch();
         }
@@ -536,7 +534,7 @@ namespace taas
         std::ofstream file(filename);
         std::string report;
         uint64 avg_lantency = 0;
-        uint32 total_txn_cnt = local_txns_.Lookup(epoch).size();
+        uint32 total_txn_cnt = local_txns_[epoch].size();
         cnt_mutex.lock();
         done_txn_cnt += total_txn_cnt;
         // txns per second
@@ -544,7 +542,7 @@ namespace taas
         cnt_mutex.unlock();
         for (size_t i = 0; i < total_txn_cnt; i++)
         {
-            uint64 single_latency = local_txns_.Lookup(epoch)[i].end_ts() - local_txns_.Lookup(epoch)[i].start_ts();
+            uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
             avg_lantency += single_latency;
         }
 
@@ -552,14 +550,14 @@ namespace taas
         file << report;
     }
     // worker
-    void Server::Work(uint64 epoch)
+    void Server::Work(std::vector<PB::Txn> local_txns, uint64 epoch)
     {
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
         // process distribute & collect all in-region subtxns
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
-        inregion_subtxns = Distribute(local_txns_.Lookup(epoch), epoch);
+        inregion_subtxns = Distribute(local_txns_[epoch], epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
         // process replicate & collect all out-region subtxns
         // LOG(INFO) << "epoch : " << epoch << " Start Replicate";
