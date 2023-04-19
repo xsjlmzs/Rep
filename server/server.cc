@@ -550,6 +550,9 @@ namespace taas
     // worker
     void Server::Work(uint64 epoch)
     {
+        google::SetLogDestination(google::INFO, "../log/INFO_");
+        std::string ext = "_" + std::to_string(epoch);
+        google::SetLogFilenameExtension(ext.c_str());
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;

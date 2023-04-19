@@ -10,7 +10,6 @@ std::string instruction[]{"INVALID", "GET", "PUT", "DELETE"};
 
 int main(int argc, char *argv[])
 {
-    FLAGS_log_dir = "./";
     google::InitGoogleLogging(argv[0]);
     google::SetStderrLogging(google::GLOG_INFO);
     using google::INFO;
