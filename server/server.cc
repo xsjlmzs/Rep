@@ -167,12 +167,12 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 8;
+        uint32 max_epoch = 1;
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            if (cur_epoch > max_epoch)
+            if (cur_epoch >= max_epoch)
             {
                 thread_pool_->shutdown();
                 Spin(10);
@@ -550,9 +550,6 @@ namespace taas
     // worker
     void Server::Work(uint64 epoch)
     {
-        google::SetLogDestination(google::INFO, "../log/INFO_");
-        std::string ext = "_" + std::to_string(epoch);
-        google::SetLogFilenameExtension(ext.c_str());
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
