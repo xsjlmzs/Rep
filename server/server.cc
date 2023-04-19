@@ -122,6 +122,7 @@ namespace taas
             {
                 sync_server_cnt++;
             }
+            usleep(100);
         }
         // sync complete
         conn_->DeleteChannel("Heartbeat");
@@ -167,7 +168,7 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 1;
+        uint32 max_epoch = 2;
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
@@ -175,7 +176,7 @@ namespace taas
             if (cur_epoch >= max_epoch)
             {
                 thread_pool_->shutdown();
-                Spin(10);
+                Spin(1);
                 break;
             }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
@@ -269,7 +270,7 @@ namespace taas
             }
             else
             {
-                usleep(100);
+                usleep(1000);
             }
         }
         LOG(INFO) << "epoch : " << epoch << " Distribute() barrier end"; 
@@ -327,7 +328,7 @@ namespace taas
             }
             else
             {
-                usleep(100);
+                usleep(1000);
             }
         }
         LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
@@ -449,7 +450,7 @@ namespace taas
             }
             else
             {
-                usleep(100);
+                usleep(1000);
             }
         }
         delete reply_msg;
