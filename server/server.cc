@@ -267,6 +267,10 @@ namespace taas
                 recv_msg_cnt++;
                 inregion_subtxns->push_back(recv_subtxn);
             }
+            else
+            {
+                usleep(100);
+            }
         }
         LOG(INFO) << "epoch : " << epoch << " Distribute() barrier end"; 
         conn_->DeleteChannel(channel);
@@ -320,6 +324,10 @@ namespace taas
             {
                 counter++;
                 outregion_subtxns->push_back(recv_subtxn);
+            }
+            else
+            {
+                usleep(100);
             }
         }
         LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
@@ -438,6 +446,10 @@ namespace taas
             {
                 recv_replies.push_back(*reply_msg);
                 recv_msg_cnt++;
+            }
+            else
+            {
+                usleep(100);
             }
         }
         delete reply_msg;
