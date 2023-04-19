@@ -29,7 +29,7 @@ namespace taas
         // for local merge <key, tid>
         std::map<std::string, uint64> crdt_map_[kMaxEpoch];
         // local generate txn <epoch-id, tnxs>
-        std::map<uint64, std::vector<PB::Txn>> local_txns_;
+        AtomicMap<uint64, std::vector<PB::Txn>> local_txns_;
 
         uint32_t local_server_id_;
 

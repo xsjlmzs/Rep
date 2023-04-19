@@ -187,11 +187,12 @@ namespace taas
                 txn->set_start_epoch(cur_epoch);
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
-                local_txns_[cur_epoch].push_back(*txn);
+                local_txns_.Lookup(cur_epoch).push_back(*txn);
+                // local_txns_[cur_epoch].push_back(*txn);
             }
             delete txn;
 
-            LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
+            LOG(INFO) << "epoch "<< cur_epoch << ": " << local_txns_.Lookup(cur_epoch).size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
             thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
@@ -533,7 +534,7 @@ namespace taas
         std::ofstream file(filename);
         std::string report;
         uint64 avg_lantency = 0;
-        uint32 total_txn_cnt = local_txns_[epoch].size();
+        uint32 total_txn_cnt = local_txns_.Lookup(epoch).size();
         cnt_mutex.lock();
         done_txn_cnt += total_txn_cnt;
         // txns per second
@@ -541,7 +542,7 @@ namespace taas
         cnt_mutex.unlock();
         for (size_t i = 0; i < total_txn_cnt; i++)
         {
-            uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
+            uint64 single_latency = local_txns_.Lookup(epoch)[i].end_ts() - local_txns_.Lookup(epoch)[i].start_ts();
             avg_lantency += single_latency;
         }
 
@@ -556,8 +557,7 @@ namespace taas
         std::vector<PB::Txn> *committable_subtxns;
         // process distribute & collect all in-region subtxns
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
-        std::vector<PB::Txn> local_txns;
-        inregion_subtxns = Distribute(local_txns, epoch);
+        inregion_subtxns = Distribute(local_txns_.Lookup(epoch), epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
         // process replicate & collect all out-region subtxns
         // LOG(INFO) << "epoch : " << epoch << " Start Replicate";
