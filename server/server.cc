@@ -555,9 +555,10 @@ namespace taas
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
         std::vector<PB::Txn> *committable_subtxns;
+        std::vector<PB::Txn> initial_txns(local_txns_[epoch]);
         // process distribute & collect all in-region subtxns
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
-        inregion_subtxns = Distribute(local_txns_[epoch], epoch);
+        inregion_subtxns = Distribute(initial_txns, epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
         // // process replicate & collect all out-region subtxns
         // LOG(INFO) << "epoch : " << epoch << " Start Replicate";
@@ -599,7 +600,7 @@ namespace taas
         // }
         // if (!atomic_test)
         //     LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
-        // delete inregion_subtxns, outregion_subtxns, committable_subtxns;
+        delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 
     void Server::Join()
