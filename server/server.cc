@@ -223,35 +223,36 @@ namespace taas
         }
 
         // split txn into subtxns
-        // for (size_t i = 0; i < local_txns.size(); i++)
-        // {
-        //     const PB::Txn& txn = local_txns.at(i);
-        //     std::map<uint32, PB::Txn> subtxns; // <node_id, subtxn>
-        //     for (size_t j = 0; j < txn.commands_size(); j++)
-        //     {
-        //         const PB::Command& stat = txn.commands(j);
-        //         // find responsible node for the key in region
-        //         int partition_id = config_->LookupPartition(stat.key());
-        //         int machine_id = config_->LookupMachineID(partition_id);
-        //         if (subtxns.count(machine_id) == 0)
-        //         {
-        //             PB::Txn subtxn;
-        //             subtxn.set_txn_id(txn.txn_id());
-        //             subtxn.set_start_epoch(txn.start_epoch());
-        //             subtxn.set_status(PB::TxnStatus::EXEC);
-        //             subtxns[machine_id] = subtxn;
-        //         }
-        //         subtxns[machine_id].add_commands()->CopyFrom(stat);
-        //     }
+        for (size_t i = 0; i < local_txns.size(); i++)
+        {
+            const PB::Txn& txn = local_txns.at(i);
+            std::map<uint32, PB::Txn> subtxns; // <node_id, subtxn>
+            for (size_t j = 0; j < txn.commands_size(); j++)
+            {
+                const PB::Command& stat = txn.commands(j);
+                // find responsible node for the key in region
+                int partition_id = config_->LookupPartition(stat.key());
+                int machine_id = config_->LookupMachineID(partition_id);
+                if (subtxns.count(machine_id) == 0)
+                {
+                    PB::Txn subtxn;
+                    subtxn.set_txn_id(txn.txn_id());
+                    subtxn.set_start_epoch(txn.start_epoch());
+                    subtxn.set_status(PB::TxnStatus::EXEC);
+                    subtxns[machine_id] = subtxn;
+                }
+                subtxns[machine_id].add_commands()->CopyFrom(stat);
+            }
 
-        //     // compile subtxns to batch
-        //     for(std::map<uint32, PB::Txn>::iterator iter = subtxns.begin(); iter != subtxns.end(); ++iter)
-        //     {
-        //         int remote_server_id = iter->first;
-        //         const PB::Txn& subtxn = iter->second;
-        //         batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
-        //     }
-        // }
+            // compile subtxns to batch
+            for(std::map<uint32, PB::Txn>::iterator iter = subtxns.begin(); iter != subtxns.end(); ++iter)
+            {
+                int remote_server_id = iter->first;
+                const PB::Txn& subtxn = iter->second;
+                batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
+            }
+            
+        }
         
         // send batch_subtxns to all in-region peers
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_subtxns.begin(); iter != batch_subtxns.end(); ++iter)
