@@ -130,12 +130,12 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     Spin(0.1);
 
     // build socket
-    for (std::map<uint, Node*>::const_iterator it = config->all_nodes_.begin();
+    for (std::map<uint32, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
-        if (config->node_id_ != it->second->node_id) {
-            remote_out_[it->second->node_id] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
+        if (config->node_id_ != it->first) {
+            remote_out_[it->first] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
-            remote_out_[it->second->node_id]->connect(endpoint); 
+            remote_out_[it->first]->connect(endpoint); 
         }
     }
 
@@ -155,7 +155,7 @@ Connection::~Connection() {
     remote_in_->close();
     delete remote_in_;
 
-    for (std::map<int, zmqpp::socket*>::iterator it = remote_out_.begin();
+    for (std::map<uint32, zmqpp::socket*>::iterator it = remote_out_.begin();
          it != remote_out_.end(); ++it) {
         it->second->close();
         delete it->second;
@@ -229,6 +229,11 @@ void Connection::Run()
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
+            if (mp.src_node_id() == config_->node_id_)
+            {
+                LOG(INFO) << "error occur, recv message to itself";
+            }
+            
             LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
             {
@@ -261,19 +266,17 @@ void Connection::Run()
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
-                if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
-                {
-                    LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
-                    for (auto &&txn : mp.batch_txns().txns())
-                    {
-                        for (auto &&stat : txn.commands())
-                        {
-                            LOG(INFO) << stat.type() << " " << stat.key()  << " " << stat.value();
-                        }
-                        
-                    }   
-                }
-                    
+                // if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
+                // {
+                //     LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
+                //     for (auto &&txn : mp.batch_txns().txns())
+                //     {
+                //         for (auto &&stat : txn.commands())
+                //         {
+                //             LOG(INFO) << stat.type() << " " << stat.key()  << " " << stat.value();
+                //         }
+                //     }   
+                // }
             }
         }
     }
