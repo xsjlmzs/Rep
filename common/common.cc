@@ -261,7 +261,7 @@ void Connection::Run()
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
-                LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel() << " " << res;
+                LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel() << " " << sizeof(mp) << " " << sizeof(msg);
             }
         }
     }
