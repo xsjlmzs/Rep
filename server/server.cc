@@ -550,7 +550,7 @@ namespace taas
         file << report;
     }
     // worker
-    void Server::Work(const std::vector<PB::Txn>& local_txns, uint64 epoch)
+    void Server::Work(const std::vector<PB::Txn> local_txns, uint64 epoch)
     {
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
