@@ -56,7 +56,7 @@ namespace taas
         std::vector<PB::Txn>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker
-        void Work(uint64 epoch);
+        void Work(const std::vector<PB::Txn>& local_txns, uint64 epoch);
         void Join();
     };
 } // namespace tass

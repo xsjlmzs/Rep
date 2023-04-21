@@ -192,10 +192,10 @@ namespace taas
             }
             delete txn;
 
-            LOG(INFO) << "epoch"<< cur_epoch << " : " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
+            LOG(INFO) << "epoch : " << cur_epoch << " " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
-            thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
+            thread_pool_->submit(std::bind(&Server::Work, this, local_txns_[cur_epoch], cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             epoch_manager_->AddPhysicalEpoch();
         }
@@ -550,7 +550,7 @@ namespace taas
         file << report;
     }
     // worker
-    void Server::Work(uint64 epoch)
+    void Server::Work(const std::vector<PB::Txn>& local_txns, uint64 epoch)
     {
         std::vector<std::pair<uint64, uint64>> latencies;
         std::vector<PB::MessageProto> *inregion_subtxns, *outregion_subtxns;
