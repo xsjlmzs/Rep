@@ -121,6 +121,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
     remote_in_->bind(remote_endpoint);
+    zmq_setsockopt(remote_in_, ZMQ_RCVHWM, "", 10000);
 
     // alloc 
     new_channel_queue_ = new AtomicQueue<std::string>();
@@ -136,6 +137,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
             remote_out_[it->first] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
             remote_out_[it->first]->connect(endpoint); 
+            zmq_setsockopt(remote_out_[it->first], ZMQ_SNDHWM, "", 10000);
         }
     }
 
@@ -265,6 +267,7 @@ void Connection::Run()
                 std::string mp_str;
                 mp.SerializeToString(&mp_str);
                 msg << mp_str;
+                
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
                 // if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
                 // {
