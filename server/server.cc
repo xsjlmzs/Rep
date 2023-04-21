@@ -232,7 +232,7 @@ namespace taas
                 const PB::Command& stat = txn.commands(j);
                 // find responsible node for the key in region
                 int partition_id = config_->LookupPartition(stat.key());
-                int machine_id = config_->LookupMachineID(partition_id);
+                uint32 machine_id = config_->LookupMachineID(partition_id);
                 if (subtxns.count(machine_id) == 0)
                 {
                     PB::Txn subtxn;
@@ -247,11 +247,10 @@ namespace taas
             // compile subtxns to batch
             for(std::map<uint32, PB::Txn>::iterator iter = subtxns.begin(); iter != subtxns.end(); ++iter)
             {
-                int remote_server_id = iter->first;
+                uint32 remote_server_id = iter->first;
                 const PB::Txn& subtxn = iter->second;
                 batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
-            }
-            
+            }   
         }
         
         // send batch_subtxns to all in-region peers
