@@ -181,7 +181,7 @@ namespace taas
                 break;
             }
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
-
+            std::vector<PB::Txn> local_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
                 client_->GetTxn(&txn, GenerateTid());
@@ -189,13 +189,14 @@ namespace taas
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
                 local_txns_[cur_epoch].push_back(*txn);
+                local_txns.push_back(*txn);
             }
             delete txn;
 
             LOG(INFO) << "epoch : " << cur_epoch << " " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
-            thread_pool_->submit(std::bind(&Server::Work, this, local_txns_[cur_epoch], cur_epoch));
+            thread_pool_->submit(std::bind(&Server::Work, this, local_txns, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             epoch_manager_->AddPhysicalEpoch();
         }
