@@ -559,47 +559,47 @@ namespace taas
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
         inregion_subtxns = Distribute(local_txns_[epoch], epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
-        // process replicate & collect all out-region subtxns
-        LOG(INFO) << "epoch : " << epoch << " Start Replicate";
-        outregion_subtxns = Replicate(*inregion_subtxns, epoch);
-        LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
-        // determinstic process merge
-        // return value : kvs all will write in db 
-        LOG(INFO) << "epoch : " << epoch << " Start Merge";
-        committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
-        LOG(INFO) << "epoch : " << epoch << " Merge Finish";
-        // atomic batch write in
-        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
-            local_txns_[epoch][i].set_end_ts(GetTime());
+        // // process replicate & collect all out-region subtxns
+        // LOG(INFO) << "epoch : " << epoch << " Start Replicate";
+        // outregion_subtxns = Replicate(*inregion_subtxns, epoch);
+        // LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
+        // // determinstic process merge
+        // // return value : kvs all will write in db 
+        // LOG(INFO) << "epoch : " << epoch << " Start Merge";
+        // committable_subtxns = Merge(*inregion_subtxns, *outregion_subtxns, epoch);
+        // LOG(INFO) << "epoch : " << epoch << " Merge Finish";
+        // // atomic batch write in
+        // for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+        //     local_txns_[epoch][i].set_end_ts(GetTime());
         
-        PrintStatistic(epoch);
-        BatchWrite(committable_subtxns);
+        // PrintStatistic(epoch);
+        // BatchWrite(committable_subtxns);
 
-        // Check Correctness
-        std::set<uint64> committed_tid_set;
-        for (size_t i = 0; i < committable_subtxns->size(); i++)
-        {
-            const PB::Txn& txn = committable_subtxns->at(i);
-            committed_tid_set.insert(txn.txn_id());
-        }
-        bool atomic_test = true;
-        for (auto &&subtxns : *inregion_subtxns)
-        {
-            for (auto &&subtxn : subtxns.batch_txns().txns())
-            {
-                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
-            }
-        }
-        for (auto &&subtxns : *outregion_subtxns)
-        {
-            for (auto &&subtxn : subtxns.batch_txns().txns())
-            {
-                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
-            }
-        }
-        if (!atomic_test)
-            LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
-        delete inregion_subtxns, outregion_subtxns, committable_subtxns;
+        // // Check Correctness
+        // std::set<uint64> committed_tid_set;
+        // for (size_t i = 0; i < committable_subtxns->size(); i++)
+        // {
+        //     const PB::Txn& txn = committable_subtxns->at(i);
+        //     committed_tid_set.insert(txn.txn_id());
+        // }
+        // bool atomic_test = true;
+        // for (auto &&subtxns : *inregion_subtxns)
+        // {
+        //     for (auto &&subtxn : subtxns.batch_txns().txns())
+        //     {
+        //         atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+        //     }
+        // }
+        // for (auto &&subtxns : *outregion_subtxns)
+        // {
+        //     for (auto &&subtxn : subtxns.batch_txns().txns())
+        //     {
+        //         atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+        //     }
+        // }
+        // if (!atomic_test)
+        //     LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
+        // delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 
     void Server::Join()
