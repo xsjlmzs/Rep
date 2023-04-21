@@ -262,7 +262,7 @@ void Connection::Run()
                 msg << mp_str;
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
                 if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
-                    LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel() << " " << mp.ByteSizeLong() << " " << mp.batch_txns().txns(0).commands(0).key();
+                    LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel() << " " << mp.ByteSizeLong() << " " << mp.batch_txns().txns(0).commands_size() << " " << mp.batch_txns().txns(0).commands_size() << " ! ";
             }
         }
     }
