@@ -66,16 +66,15 @@ int main(int argc, char *argv[])
     LOG(INFO) << "warehouse : " << warerhouse;
     LOG(INFO) << "percent_mp : " << percent_mp;
     LOG(INFO) << "config_path : " << config_path;
-    Configuration *config = new Configuration(node_id, config_path);
-    Connection *conn = new Connection(config);
-    Client *client = new Client(config, percent_mp, warerhouse);
+    std::unique_ptr<Configuration> config(new Configuration(node_id, config_path));
+    std::unique_ptr<Connection> conn(new Connection(config.get()));
+    std::unique_ptr<Client> client(new Client(config.get(), percent_mp, warerhouse));
 
     Spin(1);
 
-    taas::Server* server = new taas::Server(config, conn, client);
+    std::unique_ptr<taas::Server> server(new taas::Server(config.get(), conn.get(), client.get()));
     server->Join();     
 
     google::ShutdownGoogleLogging();
-    delete config, conn, client;
     return 0;
 }

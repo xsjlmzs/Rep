@@ -80,6 +80,7 @@ private:
     zmqpp::socket* remote_in_; // remote node in
     std::map<uint32, zmqpp::socket*> remote_out_;
 
+    // not used
     int client_port_;
     zmqpp::socket* client_resp_;
 

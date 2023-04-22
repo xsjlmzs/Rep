@@ -68,6 +68,12 @@ Configuration::Configuration(int node_id, const std::string filename)
 }
 
 Configuration::~Configuration() {
+    LOG(INFO) << "Configure Deconstruct Start";
+    for (std::map<uint32, Node*>::iterator iter = all_nodes_.begin(); iter != all_nodes_.end(); iter++)
+    {
+        delete iter->second;
+    }
+    LOG(INFO) << "Configure Deconstruct Finish";
 }
 
 int Configuration::ReadFromFile(const std::string& filename)
@@ -164,6 +170,7 @@ Connection::~Connection() {
     }
 
     channel_results_.Destroy();
+    delete new_channel_queue_, delete_channel_queue_, send_message_queue_;
     LOG(INFO) << "Connection Deconstruct Finish";
 }
 

@@ -6,7 +6,7 @@
 Client::Client(Configuration* config, uint32 mp, uint32 hot_records)
     : config_(config), percent_mp_(mp), tpcc(config, hot_records)
 {
-    client_socket_ = new zmqpp::socket(cxt_, zmqpp::socket_type::req);
+    
 }
 
 Client::~Client()

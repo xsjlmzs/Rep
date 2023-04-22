@@ -1,6 +1,4 @@
 
-#include <zmqpp/zmqpp.hpp>
-
 #include "server.h"
 
 #ifdef TEST
