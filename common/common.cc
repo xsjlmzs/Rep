@@ -127,6 +127,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     remote_in_ = new zmqpp::socket(cxt_, zmqpp::socket_type::pull);
     std::string remote_endpoint = "tcp://*:" + std::to_string(remote_port_);
     remote_in_->bind(remote_endpoint);
+    zmq_setsockopt(remote_in_, ZMQ_LINGER, "", 5);
     // zmq_setsockopt(remote_in_, ZMQ_RCVHWM, "", 10000);
 
     // alloc 
@@ -143,6 +144,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
             remote_out_[it->first] = new zmqpp::socket(cxt_,zmqpp::socket_type::push);
             std::string endpoint = "tcp://" + it->second->host + ':' + std::to_string(it->second->port); 
             remote_out_[it->first]->connect(endpoint); 
+            zmq_setsockopt(remote_out_[it->first], ZMQ_LINGER, "", 5);
             // zmq_setsockopt(remote_out_[it->first], ZMQ_SNDHWM, "", 10000);
         }
     }
