@@ -138,6 +138,7 @@ Connection::Connection(Configuration* config) : config_(config), cxt_(), deconst
     Spin(0.1);
 
     // build socket
+    // <node_id, Node*>
     for (std::map<uint32, Node*>::const_iterator it = config->all_nodes_.begin();
          it != config->all_nodes_.end(); it++) {
         if (config->node_id_ != it->first) {
@@ -198,7 +199,7 @@ void Connection::Run()
 {
     PB::MessageProto mp;
     std::string new_channel;
-    zmqpp::message_t msg;
+    zmqpp::message_t* msg = nullptr;
     bool get_req;
     while (!deconstructor_invoked_)
     {
@@ -235,12 +236,20 @@ void Connection::Run()
         }
         
         // recv msg
-        get_req = remote_in_->receive(msg, true);
+        if (msg!=nullptr)
+        {
+            delete msg;
+        }
+        
+        msg = new zmqpp::message();
+        get_req = remote_in_->receive(*msg, true);
         if (get_req)
         {
             std::string msg_str;
-            msg >> msg_str;
+            *msg >> msg_str;
             mp.ParseFromString(msg_str);
+            LOG(INFO) << "recv time : " << GetTime();
+
             LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << config_->node_id_;
             
             LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
@@ -256,7 +265,11 @@ void Connection::Run()
             mp.Clear();
         }
         // send msg
-
+        if (msg!=nullptr)
+        {
+            delete msg;
+        }
+        msg = new zmqpp::message();
         get_req = send_message_queue_->Pop(&mp);
         if (get_req)
         {
@@ -276,9 +289,9 @@ void Connection::Run()
                 std::string mp_str;
                 LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_node_id();
                 mp.SerializeToString(&mp_str);
-                msg << mp_str;
+                *msg << mp_str;
                 
-                bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
+                bool res = remote_out_[mp.dest_node_id()]->send(*msg, false);
                 
                 // if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
                 // {
