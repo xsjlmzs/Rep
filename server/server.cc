@@ -248,7 +248,7 @@ namespace taas
                 uint32 remote_server_id = iter->first;
                 const PB::Txn& subtxn = iter->second;
                 PB::Txn* added_txn = batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns();
-                added_txn->CopyFrom(subtxn);
+         //       added_txn->CopyFrom(subtxn);
             }   
         }
         

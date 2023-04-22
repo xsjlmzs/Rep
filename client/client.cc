@@ -11,8 +11,6 @@ Client::Client(Configuration* config, uint32 mp, uint32 hot_records)
 
 Client::~Client()
 {
-    client_socket_->close();
-    delete client_socket_;
 }
 
 PB::Txn CmdsToTxn(const std::vector<std::vector<std::string>>& cmds)
