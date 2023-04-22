@@ -269,6 +269,11 @@ void Connection::Run()
                 msg << mp_str;
                 
                 bool res = remote_out_[mp.dest_node_id()]->send(msg, false);
+                if (mp.dest_node_id() == config_->node_id_)
+                {
+                    LOG(INFO) << "impossible";
+                }
+                
                 // if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
                 // {
                 //     LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
