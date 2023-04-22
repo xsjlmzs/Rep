@@ -231,10 +231,7 @@ void Connection::Run()
             std::string msg_str;
             msg >> msg_str;
             mp.ParseFromString(msg_str);
-            if (mp.src_node_id() == config_->node_id_)
-            {
-                LOG(INFO) << "error occur, recv message to itself";
-            }
+            LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << config_->node_id_;
             
             LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
