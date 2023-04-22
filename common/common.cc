@@ -199,6 +199,7 @@ void Connection::Run()
     PB::MessageProto mp;
     std::string new_channel;
     zmqpp::message_t msg;
+    bool get_req;
     while (!deconstructor_invoked_)
     {
         // new channel
@@ -234,8 +235,8 @@ void Connection::Run()
         }
         
         // recv msg
-        bool got_req = remote_in_->receive(msg, true);
-        if (got_req)
+        get_req = remote_in_->receive(msg, true);
+        if (get_req)
         {
             std::string msg_str;
             msg >> msg_str;
@@ -255,7 +256,9 @@ void Connection::Run()
             mp.Clear();
         }
         // send msg
-        if (send_message_queue_->Pop(&mp))
+
+        get_req = send_message_queue_->Pop(&mp);
+        if (get_req)
         {
             if (mp.dest_node_id() == config_->node_id_)
             {
@@ -308,9 +311,7 @@ bool Connection::GetMessage(const std::string& channel, PB::MessageProto* msg)
 
 void Connection::Send(const PB::MessageProto& msg)
 {
-    PB::MessageProto mp;
-    mp.CopyFrom(msg);
-    send_message_queue_->Push(mp);
+    send_message_queue_->Push(msg);
 }
 
 PB::ClientRequest ZmqMsgToClientRequest(zmqpp::message& msg)
