@@ -11,6 +11,7 @@ namespace taas
     EpochManager::EpochManager(int epoch_duration = 10) : epoch_duration_(epoch_duration)
     {
         std::atomic_init(&cur_epoch_, 0);
+        std::atomic_init(&committed_epoch_, 0);
         deconstructor_invoked_ = false;
     }
 
@@ -36,6 +37,15 @@ namespace taas
     uint64 EpochManager::GetPhysicalEpoch() 
     {
         return cur_epoch_.load();
+    }
+
+    void EpochManager::AddCommittedEpoch()
+    {
+        committed_epoch_++;
+    }
+    uint64 EpochManager::GetCommittedEpoch() 
+    {
+        return committed_epoch_.load();
     }
 
     double EpochManager::GetEpochDuration()

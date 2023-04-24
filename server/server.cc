@@ -9,7 +9,7 @@ uint64 done_txn_cnt = 0;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
-        :config_(config), conn_(conn), client_(client),deconstructor_invoked_(false)
+        :config_(config), conn_(conn), client_(client), deconstructor_invoked_(false)
     {
         local_server_id_ = config_->node_id_;
         storage_ = new Storage();
@@ -166,18 +166,21 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 20;
+        uint32 max_epoch = 20u;
         PB::Txn *txn = new PB::Txn();
         while (!deconstructor_invoked_)
         {
             uint64 start_time = GetTime();
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
-            if (cur_epoch >= max_epoch)
+            
+            // reach max running epoch, exit
+            if (epoch_manager_->GetCommittedEpoch() >= max_epoch)
             {
                 thread_pool_->shutdown();
                 Spin(1);
                 break;
             }
+            
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             std::vector<PB::Txn> local_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
@@ -597,6 +600,7 @@ namespace taas
                 atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
             }
         }
+        epoch_manager_->AddCommittedEpoch();
         if (!atomic_test)
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;

@@ -13,6 +13,7 @@ namespace taas
 
         double epoch_duration_; // ms
         std::atomic<uint64> cur_epoch_;
+        std::atomic<uint64> committed_epoch_;
         bool deconstructor_invoked_;
 
         EpochManager(int epoch_duration);
@@ -25,7 +26,8 @@ namespace taas
         void AddPhysicalEpoch();
         uint64 GetPhysicalEpoch();
         double GetEpochDuration();
-
+        void AddCommittedEpoch();
+        uint64 GetCommittedEpoch();
     };
 } // namespace taas
 
