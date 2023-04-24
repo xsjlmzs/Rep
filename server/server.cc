@@ -166,8 +166,7 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 6;
-        uint32 max_batch_size = 1000;
+        uint32 max_epoch = 20;
         PB::Txn *txn = new PB::Txn();
         while (!deconstructor_invoked_)
         {
@@ -187,8 +186,7 @@ namespace taas
                 txn->set_start_epoch(cur_epoch);
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
-                if (local_txns_[cur_epoch].size() < max_batch_size)
-                    local_txns_[cur_epoch].push_back(*txn);
+                local_txns_[cur_epoch].push_back(*txn);
             }
             delete txn;
 

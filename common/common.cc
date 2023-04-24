@@ -199,8 +199,14 @@ void Connection::Run()
 {
     PB::MessageProto mp;
     std::string new_channel;
-    zmqpp::message_t* msg = nullptr;
     bool get_req;
+    zmqpp::message *msg = nullptr;
+    auto clear_zmqmsg = [](zmqpp::message* m) 
+    {
+        if (m != nullptr)
+            delete m;
+        m = new zmqpp::message();
+    };
     while (!deconstructor_invoked_)
     {
         // new channel
@@ -224,6 +230,7 @@ void Connection::Run()
         }
 
         // delete channel
+        
         while (delete_channel_queue_->Pop(&new_channel))
         {
             if (channel_results_.Count(new_channel) == 0)
@@ -235,24 +242,15 @@ void Connection::Run()
             
         }
         
+        clear_zmqmsg(msg);
         // recv msg
-        if (msg!=nullptr)
-        {
-            delete msg;
-        }
-        
-        msg = new zmqpp::message();
         get_req = remote_in_->receive(*msg, true);
         if (get_req)
         {
             std::string msg_str;
             *msg >> msg_str;
-            mp.ParseFromString(msg_str);
-            LOG(INFO) << "recv time : " << GetTime();
-
-            LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << config_->node_id_;
-            
-            LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
+            mp.ParseFromString(msg_str);            
+            // LOG(INFO) << "recv epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
             if (channel_results_.Count(mp.dest_channel()) == 0)
             {
                 // haven't existed channel
@@ -265,11 +263,7 @@ void Connection::Run()
             mp.Clear();
         }
         // send msg
-        if (msg!=nullptr)
-        {
-            delete msg;
-        }
-        msg = new zmqpp::message();
+        clear_zmqmsg(msg);
         get_req = send_message_queue_->Pop(&mp);
         if (get_req)
         {
@@ -287,23 +281,11 @@ void Connection::Run()
             else
             {
                 std::string mp_str;
-                LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_node_id();
+                // LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id() << " & " << mp.dest_node_id();
                 mp.SerializeToString(&mp_str);
                 *msg << mp_str;
                 
                 bool res = remote_out_[mp.dest_node_id()]->send(*msg, false);
-                
-                // if (mp.type() == PB::MessageProto_MessageType_BATCHTXNS)
-                // {
-                //     LOG(INFO) << "send epoch : " << mp.debug_info() << " " << mp.src_node_id()  << " & " << mp.dest_node_id() << " & " << mp.dest_channel();
-                //     for (auto &&txn : mp.batch_txns().txns())
-                //     {
-                //         for (auto &&stat : txn.commands())
-                //         {
-                //             LOG(INFO) << stat.type() << " " << stat.key()  << " " << stat.value();
-                //         }
-                //     }   
-                // }
             }
         }
     }
