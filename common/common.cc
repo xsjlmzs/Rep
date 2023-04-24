@@ -201,11 +201,11 @@ void Connection::Run()
     std::string new_channel;
     bool get_req;
     zmqpp::message *msg = nullptr;
-    auto clear_zmqmsg = [](zmqpp::message* m) 
+    auto clear_zmqmsg = [&msg]() 
     {
-        if (m != nullptr)
-            delete m;
-        m = new zmqpp::message();
+        if (msg != nullptr)
+            delete msg;
+        msg = new zmqpp::message();
     };
     while (!deconstructor_invoked_)
     {
@@ -242,7 +242,7 @@ void Connection::Run()
             
         }
         
-        clear_zmqmsg(msg);
+        clear_zmqmsg();
         // recv msg
         get_req = remote_in_->receive(*msg, true);
         if (get_req)
@@ -263,7 +263,7 @@ void Connection::Run()
             mp.Clear();
         }
         // send msg
-        clear_zmqmsg(msg);
+        clear_zmqmsg();
         get_req = send_message_queue_->Pop(&mp);
         if (get_req)
         {
