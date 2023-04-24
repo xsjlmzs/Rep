@@ -87,7 +87,10 @@ namespace taas
         {
             for (auto &&cmd : txn.commands())
             {
-                kv_pairs.push_back(std::pair<std::string, std::string>(cmd.key(), cmd.value()));
+                if (cmd.type() == PB::OpType::PUT)
+                {
+                    kv_pairs.push_back(std::pair<std::string, std::string>(cmd.key(), cmd.value()));
+                }
             }
         }
         storage_->batch_put(kv_pairs);
@@ -368,15 +371,17 @@ namespace taas
             iter != config_->all_nodes_.end(); ++iter)
         {
             // skip out-region nodes
-            if (iter->second->replica_id != config_->replica_id_ && iter->first != local_server_id_)
-                continue;
-            int remote_server_id = iter->first;
-            PB::MessageProto mp;
-            mp.set_src_node_id(local_server_id_);
-            mp.set_dest_node_id(remote_server_id);
-            mp.set_dest_channel(channel);
-            mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
-            batch_replies[remote_server_id] = mp;
+            int remote_replica = iter->second->replica_id;
+            uint32 remote_server_id = iter->first;
+            if (remote_replica == config_->replica_id_ && remote_server_id != local_server_id_)
+            {
+                PB::MessageProto mp;
+                mp.set_src_node_id(local_server_id_);
+                mp.set_dest_node_id(remote_server_id);
+                mp.set_dest_channel(channel);
+                mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
+                batch_replies[remote_server_id] = mp;
+            }
         }
         
         // validate in-region txns 
@@ -387,7 +392,7 @@ namespace taas
             {
                 PB::Txn new_txn(subtxn);
                 uint32 remote_node_id = subtxns.src_node_id();
-                bool validate_res = Validate(new_txn, epoch);
+                bool validate_res = Validate(subtxn, epoch);
                 if (validate_res)
                 {
                     ExecRead(new_txn);
@@ -590,14 +595,16 @@ namespace taas
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
-                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+                bool part_res = CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+                atomic_test &= part_res;
             }
         }
         for (auto &&subtxns : *outregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
-                atomic_test &= CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+                bool part_res = CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
+                atomic_test &= part_res;
             }
         }
         epoch_manager_->AddCommittedEpoch();
