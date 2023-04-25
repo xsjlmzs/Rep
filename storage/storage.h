@@ -13,8 +13,12 @@ public:
     Storage(/* args */);
     ~Storage();
     void put(const std::string& key, const std::string& value);
-    void batch_put(const std::vector<std::pair<std::string, std::string>>& kvs);
     std::string get(const std::string& key);
+
+    void LockWrite();
+    void UnlockWrite();
+    void LockRead();
+    void UnlockRead();
 };
 
 

@@ -58,6 +58,7 @@ namespace taas
     // exec read op and fill the 'value'
     void Server::ExecRead(PB::Txn& txn)
     {
+        storage_->LockRead();
         for (size_t i = 0; i < txn.commands().size(); i++)
         {
             PB::Command* cmd = txn.mutable_commands(i);
@@ -67,10 +68,12 @@ namespace taas
                 cmd->set_value(value);
             }
         }
+        storage_->UnlockRead();
     }
 
     void Server::ExecWrite(const PB::Txn& txn)
     {
+        storage_->LockWrite();
         for (size_t i = 0; i < txn.commands().size(); i++)
         {
             const PB::Command& cmd = txn.commands(i);
@@ -79,22 +82,21 @@ namespace taas
                 storage_->put(cmd.key(), cmd.value());
             }
         }
+        storage_->UnlockWrite();
     }
 
     void Server::BatchWrite(const std::vector<PB::Txn>* txns)
     {
-        std::vector<std::pair<std::string, std::string>> kv_pairs;
         for (auto &&txn : *txns)
         {
             for (auto &&cmd : txn.commands())
             {
                 if (cmd.type() == PB::OpType::PUT)
                 {
-                    kv_pairs.push_back(std::pair<std::string, std::string>(cmd.key(), cmd.value()));
+                    storage_->put(cmd.key(), cmd.value());
                 }
             }
         }
-        storage_->batch_put(kv_pairs);
     }
 
     void Server::HeartbeatAllServers()
@@ -587,15 +589,15 @@ namespace taas
             local_txns_[epoch][i].set_end_ts(GetTime());
         
         PrintStatistic(epoch);
-        BatchWrite(committable_subtxns);
-
-        // Check Correctness
         std::set<uint64> committed_tid_set;
         for (size_t i = 0; i < committable_subtxns->size(); i++)
         {
             const PB::Txn& txn = committable_subtxns->at(i);
             committed_tid_set.insert(txn.txn_id());
         }
+        storage_->LockWrite();
+        BatchWrite(committable_subtxns);
+        // Check Correctness
         bool atomic_test = true;
         for (auto &&subtxns : *inregion_subtxns)
         {
@@ -615,9 +617,10 @@ namespace taas
                 atomic_test &= part_res;
             }
         }
-        epoch_manager_->AddCommittedEpoch();
+        storage_->UnlockWrite();
         if (!atomic_test)
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
+        epoch_manager_->AddCommittedEpoch();
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 

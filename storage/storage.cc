@@ -13,27 +13,33 @@ Storage::~Storage()
 
 void Storage::put(const std::string& key, const std::string& value)
 {
-    std::unique_lock<std::mutex> write_lock(write_mtx_);
-    std::unique_lock<std::mutex> read_lock(read_mtx_);
     (*kvs_)[key] = value;
-}
-
-void Storage::batch_put(const std::vector<std::pair<std::string, std::string>>& kvs)
-{
-    std::unique_lock<std::mutex> write_lock(write_mtx_);
-    std::unique_lock<std::mutex> read_lock(read_mtx_);
-    for (auto &&kv : kvs)
-    {
-        (*kvs_)[kv.first] = kv.second;
-    }
 }
 
 std::string Storage::get(const std::string& key)
 {
-    std::unique_lock<std::mutex> read_lock(read_mtx_);
     if (kvs_->find(key) == kvs_->end())
     {
         return "";
     }
     return (*kvs_)[key];
+}
+
+void Storage::LockWrite()
+{
+    write_mtx_.lock();
+    read_mtx_.lock();
+}
+void Storage::UnlockWrite()
+{
+    read_mtx_.unlock();
+    write_mtx_.unlock();
+}
+void Storage::LockRead()
+{
+    read_mtx_.lock();
+}
+void Storage::UnlockRead()
+{
+    read_mtx_.unlock();
 }
