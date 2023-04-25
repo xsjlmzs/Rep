@@ -377,7 +377,7 @@ namespace taas
             // skip out-region nodes
             int remote_replica = iter->second->replica_id;
             uint32 remote_server_id = iter->first;
-            if (remote_replica == config_->replica_id_ && remote_server_id != local_server_id_)
+            if (remote_replica == config_->replica_id_ )
             {
                 PB::MessageProto mp;
                 mp.set_src_node_id(local_server_id_);
@@ -448,7 +448,7 @@ namespace taas
         }
         
         LOG(INFO) << "epoch : " << epoch << " have sent " << sent_cnt << " Merge() msgs and barrier";
-        int recv_msg_cnt = 1;
+        int recv_msg_cnt = 0;
         std::vector<PB::MessageProto> recv_replies;
 
         // barrier : wait for reply msg arrive
@@ -605,6 +605,8 @@ namespace taas
                 atomic_test &= part_res;
             }
         }
+        if (!atomic_test)
+            LOG(ERROR) << "epoch : " << epoch << " inregion check failed";  
         for (auto &&subtxns : *outregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
