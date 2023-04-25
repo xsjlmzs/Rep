@@ -4,6 +4,7 @@
 #ifdef TEST
 std::mutex cnt_mutex;
 uint64 done_txn_cnt = 0;
+uint32 done_total_latency = 0;
 #endif
 
 namespace taas 
@@ -540,20 +541,22 @@ namespace taas
         std::string filename = "./report." + UInt32ToString(local_server_id_) + "." + UInt32ToString(epoch);
         std::ofstream file(filename);
         std::string report;
-        uint64 avg_lantency = 0;
-        uint32 total_txn_cnt = local_txns_[epoch].size();
-        cnt_mutex.lock();
-        done_txn_cnt += total_txn_cnt;
-        // txns per second
-        report.append("avg_throught : " + UInt64ToString(done_txn_cnt * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
-        cnt_mutex.unlock();
-        for (size_t i = 0; i < total_txn_cnt; i++)
+        uint64 cur_lantency = 0;
+        uint32 cur_txn_cnt = local_txns_[epoch].size();
+        
+        for (size_t i = 0; i < cur_txn_cnt; i++)
         {
             uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
-            avg_lantency += single_latency;
+            cur_lantency += single_latency;
         }
+        cnt_mutex.lock();
+        done_txn_cnt += cur_txn_cnt;
+        done_total_latency += cur_lantency;
+        // txns per second
+        report.append("avg_throught : " + UInt64ToString(done_txn_cnt * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
+        report.append("avg_lantency : " + UInt64ToString(done_total_latency / done_txn_cnt) + "\n");
+        cnt_mutex.unlock();
 
-        report.append("avg_lantency : " + UInt64ToString(avg_lantency / total_txn_cnt) + "\n");
         file << report;
     }
     // worker
