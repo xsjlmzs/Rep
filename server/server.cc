@@ -305,7 +305,10 @@ namespace taas
         // send the whole subtxns in region to other replica's counterpart
         for (std::map<uint32, Node*>::const_iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
         {
-            if (iter->second->replica_id != config_->replica_id_ && iter->second->partition_id == config_->partition_id_)
+            uint32 remote_replica_id = iter->second->replica_id;
+            uint32 remote_partition_id = iter->second->partition_id;
+            uint32 remote_server_id = iter->first;
+            if (remote_replica_id != config_->replica_id_ && remote_partition_id == config_->partition_id_)
             {
                 // broadcast to all other peer node
                 uint32 remote_server_id = iter->first;
@@ -419,7 +422,7 @@ namespace taas
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
                 PB::Txn new_txn(subtxn);
-                bool validate_res = Validate(new_txn, epoch);
+                bool validate_res = Validate(subtxn, epoch);
                 // dont need to reply out-region nodes with read results
                 if (!validate_res)
                 {
