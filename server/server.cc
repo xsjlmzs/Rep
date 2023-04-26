@@ -262,7 +262,7 @@ namespace taas
         // send batch_subtxns to all in-region peers
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_subtxns.begin(); iter != batch_subtxns.end(); ++iter)
         {
-            iter->second.set_debug_info(std::to_string(epoch));
+            // iter->second.set_debug_info(std::to_string(epoch));
             conn_->Send(iter->second);
         }
         LOG(INFO) << "epoch : " << epoch << " have sent " << batch_subtxns.size() << " Distribute() msgs and barrier";
@@ -439,7 +439,7 @@ namespace taas
             }
         }
 
-        // send replies messages to in-region peers except itself
+        // send replies messages to all in-region servers
         int sent_cnt = 0;
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
@@ -605,6 +605,10 @@ namespace taas
             {
                 bool part_res = CheckAtomic(subtxn, committed_tid_set.count(subtxn.txn_id()));
                 atomic_test &= part_res;
+                if (!part_res && committed_tid_set.count(subtxn.txn_id()))
+                    LOG(ERROR) << "epoch : " << epoch << " committed but can't get again";
+                else if(!part_res)
+                    LOG(ERROR) << "epoch : " << epoch << " abort but can still get";
             }
         }
         if (!atomic_test)
