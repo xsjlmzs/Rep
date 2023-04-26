@@ -34,7 +34,7 @@ void Tpcc::GetRandomKeys(std::set<uint64>* keys, uint32 num_keys, uint32 key_sta
 
 std::string RandomString()
 {
-    size_t length = rand()%18 + 20;
+    size_t length = rand()%18 + 40;
     std::string str = "";
     for (size_t i = 0; i < length; i++)
     {
@@ -64,7 +64,7 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
-        cmd->set_value(RandomString());
+        cmd->set_value(UInt64ToString(txn_id));
     }
     
     // Add coustomer to the read set
@@ -85,7 +85,7 @@ PB::Txn* Tpcc::TpccTxnSP(uint64 txn_id, uint32 part)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
-        cmd->set_value(RandomString());
+        cmd->set_value(UInt64ToString(txn_id));
     }
 
     return txn;
@@ -117,7 +117,7 @@ PB::Txn* Tpcc::TpccTxnMP(uint64 txn_id, uint32 part1, uint32 part2)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
-        cmd->set_value(RandomString());
+        cmd->set_value(UInt64ToString(txn_id));
     }
 
     // Add customer to the read set
@@ -138,7 +138,7 @@ PB::Txn* Tpcc::TpccTxnMP(uint64 txn_id, uint32 part1, uint32 part2)
         cmd = txn->add_commands();
         cmd->set_type(PB::OpType::PUT);
         cmd->set_key(UInt64ToString(*iter));
-        cmd->set_value(RandomString());
+        cmd->set_value(UInt64ToString(txn_id));
     }
     return txn;
 }

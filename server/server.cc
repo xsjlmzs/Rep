@@ -608,7 +608,7 @@ namespace taas
                 if (!part_res && committed_tid_set.count(subtxn.txn_id()))
                     LOG(ERROR) << "epoch : " << epoch << " committed but can't get again";
                 else if(!part_res)
-                    LOG(ERROR) << "epoch : " << epoch << " abort but can still get";
+                    LOG(ERROR) << "epoch : " << epoch << " abort but can still get" << committed_tid_set.count(subtxn.txn_id());
             }
         }
         if (!atomic_test)
