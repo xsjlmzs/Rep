@@ -1,12 +1,6 @@
 
 #include "server.h"
 
-#ifdef TEST
-std::mutex cnt_mutex;
-uint64 done_txn_cnt = 0;
-uint32 done_total_latency = 0;
-#endif
-
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
@@ -180,13 +174,16 @@ namespace taas
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             
             // reach max running epoch, exit
-            if (epoch_manager_->GetCommittedEpoch() >= max_epoch)
+            if (cur_epoch == max_epoch)
             {
+                std::unique_lock<std::mutex> lk(cv_mutex_);
+                cv_.wait(lk, [this, max_epoch]{return this->epoch_manager_->GetCommittedEpoch() == max_epoch; });
+                lk.unlock();
                 thread_pool_->shutdown();
-                Spin(1);
                 break;
             }
             
+            // collect batch txns
             LOG(INFO) << "------ epoch "<< cur_epoch << " start ------";
             std::vector<PB::Txn> local_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
@@ -554,13 +551,14 @@ namespace taas
             uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
             cur_lantency += single_latency;
         }
-        cnt_mutex.lock();
-        done_txn_cnt += cur_txn_cnt;
-        done_total_latency += cur_lantency;
-        // txns per second
-        report.append("avg_throught : " + UInt64ToString(done_txn_cnt * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
-        report.append("avg_lantency : " + UInt64ToString(done_total_latency / done_txn_cnt) + "\n");
-        cnt_mutex.unlock();
+        {
+            std::lock_guard<std::mutex> lock(cnt_mutex_);
+            done_txn_cnt_ += cur_txn_cnt;
+            done_total_latency_ += cur_lantency;
+            // txns per second
+            report.append("avg_throught : " + UInt64ToString(done_txn_cnt_ * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
+            report.append("avg_lantency : " + UInt64ToString(done_total_latency_ / done_txn_cnt_) + "\n");
+        }
 
         file << report;
     }
@@ -598,6 +596,7 @@ namespace taas
         storage_->LockWrite();
         BatchWrite(committable_subtxns);
         // Check Correctness
+        #ifdef CHECK_ATOMIC
         bool atomic_test = true;
         for (auto &&subtxns : *inregion_subtxns)
         {
@@ -621,10 +620,14 @@ namespace taas
                 atomic_test &= part_res;
             }
         }
-        storage_->UnlockWrite();
         if (!atomic_test)
             LOG(ERROR) << "epoch : " << epoch << " cant pass the subtxn's atomic test";   
+        #endif
+        storage_->UnlockWrite();
+
         epoch_manager_->AddCommittedEpoch();
+        cv_.notify_one();
+        
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }
 

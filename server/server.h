@@ -47,6 +47,14 @@ namespace taas
         void PrintStatistic(uint32 epoch);
 
         std::thread worker_;
+
+        std::mutex cnt_mutex_;
+        uint64 done_txn_cnt_ = 0;
+        uint32 done_total_latency_ = 0;
+
+        std::mutex cv_mutex_;
+        std::condition_variable cv_;
+
     public:
         Server(Configuration *config, Connection *conn, Client *client);
         ~Server();
