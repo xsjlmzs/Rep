@@ -3,12 +3,13 @@
 
 #include "epoch.h"
 
+extern uint32 epoch_length;
 namespace taas
 {
 
     EpochManager* EpochManager::em_ = nullptr;
 
-    EpochManager::EpochManager(int epoch_duration = 10) : epoch_duration_(epoch_duration)
+    EpochManager::EpochManager(uint32 epoch_duration = epoch_length) : epoch_duration_(epoch_duration)
     {
         std::atomic_init(&cur_epoch_, 0);
         std::atomic_init(&committed_epoch_, 0);

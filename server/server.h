@@ -51,6 +51,7 @@ namespace taas
         std::mutex cnt_mutex_;
         uint64 done_txn_cnt_ = 0;
         uint32 done_total_latency_ = 0;
+        uint64 limit_epoch_;
 
         std::mutex cv_mutex_;
         std::condition_variable cv_;

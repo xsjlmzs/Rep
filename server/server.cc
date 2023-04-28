@@ -1,15 +1,19 @@
 
 #include "server.h"
 
+extern int thread_num;
+extern uint32 epoch_length;
+extern uint64 run_epoch;
+extern const int var;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
-        :config_(config), conn_(conn), client_(client), deconstructor_invoked_(false)
+        :config_(config), conn_(conn), client_(client), limit_epoch_(run_epoch), deconstructor_invoked_(false)
     {
         local_server_id_ = config_->node_id_;
         storage_ = new Storage();
         epoch_manager_ = &EpochManager::GetInstance();
-        thread_pool_ = new ThreadPool();
+        thread_pool_ = new ThreadPool(thread_num);
         thread_pool_->init();
         LOG(INFO) << "Start Sync All Servers";
 
@@ -166,7 +170,6 @@ namespace taas
 
     void Server::Run()
     {
-        uint32 max_epoch = 20u;
         PB::Txn *txn = new PB::Txn();
         while (!deconstructor_invoked_)
         {
@@ -174,10 +177,10 @@ namespace taas
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             
             // reach max running epoch, exit
-            if (cur_epoch == max_epoch)
+            if (cur_epoch ==limit_epoch_)
             {
                 std::unique_lock<std::mutex> lk(cv_mutex_);
-                cv_.wait(lk, [this, max_epoch]{return this->epoch_manager_->GetCommittedEpoch() == max_epoch; });
+                cv_.wait(lk, [this]{return this->epoch_manager_->GetCommittedEpoch() == this->limit_epoch_; });
                 lk.unlock();
                 thread_pool_->shutdown();
                 break;

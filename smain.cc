@@ -2,11 +2,12 @@
 
 #include "server.h"
 
-// global var
-int node_id, warerhouse = 10, percent_mp = 10;
-std::string config_path = "../conf/server_ip.conf";
-
 std::string instruction[]{"INVALID", "GET", "PUT", "DELETE"};
+int node_id, warerhouse = 10, percent_mp = 10, thread_num = 16;
+std::string config_path = "../conf/server_ip.conf";
+uint32 epoch_length = 10ul;
+uint64 run_epoch = 100ull;
+const int var = 10;
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +29,9 @@ int main(int argc, char *argv[])
             {"warehouse",   optional_argument, nullptr,    'w'},
             {"percent_mp",  optional_argument, nullptr,    'm'},
             {"config_path", optional_argument, nullptr,    'p'},
+            {"epoch_length",optional_argument, nullptr,    'e'},
+            {"thread_num",  optional_argument, nullptr,    't'},
+            {"run_epoch",   optional_argument, nullptr,    'r'},
             { nullptr,      0,                 nullptr,     0 }
         };
 
@@ -51,6 +55,15 @@ int main(int argc, char *argv[])
         case 'w':
             warerhouse = std::stoi(optarg);
             break;
+        case 'e':
+            epoch_length = std::stoul(optarg);
+            break;
+        case 't':
+            thread_num = std::stoi(optarg);
+            break;
+        case 'r':
+            run_epoch = std::stoull(optarg);
+            break;
         case  0 :
             if (long_options[option_index].flag != nullptr)
                 break;
@@ -66,6 +79,9 @@ int main(int argc, char *argv[])
     LOG(INFO) << "warehouse : " << warerhouse;
     LOG(INFO) << "percent_mp : " << percent_mp;
     LOG(INFO) << "config_path : " << config_path;
+    LOG(INFO) << "epoch_length : " << epoch_length;
+    LOG(INFO) << "thread_num : " << thread_num;
+    LOG(INFO) << "run_epoch : " << run_epoch; 
     std::unique_ptr<Configuration> config(new Configuration(node_id, config_path));
     std::unique_ptr<Connection> conn(new Connection(config.get()));
     std::unique_ptr<Client> client(new Client(config.get(), percent_mp, warerhouse));
