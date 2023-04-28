@@ -7,7 +7,6 @@ int node_id, warerhouse = 10, percent_mp = 10, thread_num = 16;
 std::string config_path = "../conf/server_ip.conf";
 uint32 epoch_length = 10ul;
 uint64 run_epoch = 100ull;
-const int var = 10;
 
 int main(int argc, char *argv[])
 {

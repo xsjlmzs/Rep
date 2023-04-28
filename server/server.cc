@@ -4,7 +4,6 @@
 extern int thread_num;
 extern uint32 epoch_length;
 extern uint64 run_epoch;
-extern const int var;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
