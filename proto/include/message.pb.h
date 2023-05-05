@@ -1013,10 +1013,10 @@ class BatchTxns final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kTxnsFieldNumber = 2,
-    kStartEpochFieldNumber = 1,
+    kTxnsFieldNumber = 3,
+    kCommitEpochFieldNumber = 1,
   };
-  // repeated .PB.Txn txns = 2;
+  // repeated .PB.Txn txns = 3;
   int txns_size() const;
   private:
   int _internal_txns_size() const;
@@ -1034,13 +1034,13 @@ class BatchTxns final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn >&
       txns() const;
 
-  // uint64 start_epoch = 1;
-  void clear_start_epoch();
-  uint64_t start_epoch() const;
-  void set_start_epoch(uint64_t value);
+  // uint64 commit_epoch = 1;
+  void clear_commit_epoch();
+  uint64_t commit_epoch() const;
+  void set_commit_epoch(uint64_t value);
   private:
-  uint64_t _internal_start_epoch() const;
-  void _internal_set_start_epoch(uint64_t value);
+  uint64_t _internal_commit_epoch() const;
+  void _internal_set_commit_epoch(uint64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:PB.BatchTxns)
@@ -1051,7 +1051,7 @@ class BatchTxns final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::PB::Txn > txns_;
-  uint64_t start_epoch_;
+  uint64_t commit_epoch_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
@@ -2391,27 +2391,27 @@ inline void ClientRequest::set_allocated_txn(::PB::Txn* txn) {
 
 // BatchTxns
 
-// uint64 start_epoch = 1;
-inline void BatchTxns::clear_start_epoch() {
-  start_epoch_ = uint64_t{0u};
+// uint64 commit_epoch = 1;
+inline void BatchTxns::clear_commit_epoch() {
+  commit_epoch_ = uint64_t{0u};
 }
-inline uint64_t BatchTxns::_internal_start_epoch() const {
-  return start_epoch_;
+inline uint64_t BatchTxns::_internal_commit_epoch() const {
+  return commit_epoch_;
 }
-inline uint64_t BatchTxns::start_epoch() const {
-  // @@protoc_insertion_point(field_get:PB.BatchTxns.start_epoch)
-  return _internal_start_epoch();
+inline uint64_t BatchTxns::commit_epoch() const {
+  // @@protoc_insertion_point(field_get:PB.BatchTxns.commit_epoch)
+  return _internal_commit_epoch();
 }
-inline void BatchTxns::_internal_set_start_epoch(uint64_t value) {
+inline void BatchTxns::_internal_set_commit_epoch(uint64_t value) {
   
-  start_epoch_ = value;
+  commit_epoch_ = value;
 }
-inline void BatchTxns::set_start_epoch(uint64_t value) {
-  _internal_set_start_epoch(value);
-  // @@protoc_insertion_point(field_set:PB.BatchTxns.start_epoch)
+inline void BatchTxns::set_commit_epoch(uint64_t value) {
+  _internal_set_commit_epoch(value);
+  // @@protoc_insertion_point(field_set:PB.BatchTxns.commit_epoch)
 }
 
-// repeated .PB.Txn txns = 2;
+// repeated .PB.Txn txns = 3;
 inline int BatchTxns::_internal_txns_size() const {
   return txns_.size();
 }

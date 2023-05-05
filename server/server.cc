@@ -7,7 +7,7 @@ extern uint64 run_epoch;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
-        :config_(config), conn_(conn), client_(client), limit_epoch_(run_epoch), deconstructor_invoked_(false)
+        :config_(config), conn_(conn), client_(client), isolation(kReadCommit), limit_epoch_(run_epoch), deconstructor_invoked_(false)
     {
         local_server_id_ = config_->node_id_;
         storage_ = new Storage();
@@ -53,12 +53,12 @@ namespace taas
     }
 
     // exec read op and fill the 'value'
-    void Server::ExecRead(PB::Txn& txn)
+    void Server::ExecRead(PB::Txn* txn)
     {
         storage_->LockRead();
-        for (size_t i = 0; i < txn.commands().size(); i++)
+        for (size_t i = 0; i < txn->commands().size(); i++)
         {
-            PB::Command* cmd = txn.mutable_commands(i);
+            PB::Command* cmd = txn->mutable_commands(i);
             if (cmd->type() == PB::OpType::GET)
             {
                 std::string value = storage_->get(cmd->key());
@@ -167,6 +167,47 @@ namespace taas
         return true;
     }
 
+    bool Server::ValidateReadSet(const PB::Txn& txn)
+    {
+        bool validate_res = true;
+        std::string last_read_version = "";
+        for (auto &&stat : txn.commands())
+        {
+            if (stat.type() == PB::OpType::GET)
+            {
+                std::string read_version = stat.value();
+                storage_->LockRead();
+                std::string cur_version = storage_->get(stat.key());
+                storage_->UnlockRead();
+                switch (isolation)
+                {
+                case kReadCommit:
+                    validate_res = true;
+                    break;
+                case kRepeatableRead:
+                    if (cur_version != read_version)
+                        validate_res = false;
+                    break;
+                case kSnapshotIsolation:
+                    if (last_read_version.empty())
+                        last_read_version = read_version;
+                    else if(last_read_version != read_version)
+                        validate_res = false;
+                    break;
+                case kSerilizable: // not support
+                    break;
+                default:
+                    break;
+                }
+                if (cur_version != stat.value())
+                    return false;
+            }
+            if (!validate_res)
+                break;
+        }
+        return validate_res;
+    }
+
     void Server::Run()
     {
         PB::Txn *txn = new PB::Txn();
@@ -176,7 +217,7 @@ namespace taas
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             
             // reach max running epoch, exit
-            if (cur_epoch ==limit_epoch_)
+            if (cur_epoch == limit_epoch_)
             {
                 std::unique_lock<std::mutex> lk(cv_mutex_);
                 cv_.wait(lk, [this]{return this->epoch_manager_->GetCommittedEpoch() == this->limit_epoch_; });
@@ -191,7 +232,8 @@ namespace taas
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
                 client_->GetTxn(&txn, GenerateTid());
-                txn->set_start_epoch(cur_epoch);
+                txn->set_start_epoch(cur_epoch); // assume all txns are single epoch txn
+                txn->set_end_epoch(cur_epoch);
                 txn->set_status(PB::TxnStatus::PEND);
                 txn->set_start_ts(GetTime());
                 local_txns_[cur_epoch].push_back(*txn);
@@ -242,7 +284,7 @@ namespace taas
                     PB::Txn subtxn;
                     subtxn.set_txn_id(txn.txn_id());
                     subtxn.set_start_epoch(txn.start_epoch());
-                    subtxn.set_status(PB::TxnStatus::EXEC);
+                    subtxn.set_status(PB::TxnStatus::PEND);
                     subtxns[machine_id] = subtxn;
                 }
                 subtxns[machine_id].add_commands()->CopyFrom(stat);
@@ -292,6 +334,7 @@ namespace taas
         std::string channel = "Replica_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
+        // exec subtxn's read
         // union all in-region subtxns to a MessageProto
         for (size_t i = 0; i < inregion_subtxns.size(); i++)
         {
@@ -391,6 +434,7 @@ namespace taas
         
         // validate in-region txns 
         // only responsible for the in-region txn's reply
+        std::vector<PB::Txn>* pass_local_subtxns = new std::vector<PB::Txn>();
         for (auto &&subtxns : inregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
@@ -400,9 +444,9 @@ namespace taas
                 bool validate_res = Validate(subtxn, epoch);
                 if (validate_res)
                 {
-                    ExecRead(new_txn);
                     new_txn.set_status(PB::COMMIT);
                     batch_replies[remote_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
+                    pass_local_subtxns->push_back(new_txn);
                 }
                 else
                 {
@@ -437,6 +481,23 @@ namespace taas
                 }
             }
         }
+        
+        // wait for complete of lastest epoch
+        {
+            std::unique_lock<std::mutex> lk(cv_mutex_);
+            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
+            lk.unlock();
+        }
+
+        // validate read-set
+        for (auto &&subtxn : *pass_local_subtxns)
+        {
+            if (!ValidateReadSet(subtxn))
+            {
+                abort_subtxn_set.insert(subtxn.txn_id());
+            }
+        }
+        delete pass_local_subtxns;
 
         // send replies messages to all in-region servers
         int sent_cnt = 0;
@@ -577,6 +638,17 @@ namespace taas
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
         // process replicate & collect all out-region subtxns
         LOG(INFO) << "epoch : " << epoch << " Start Replicate";
+        // Exec Read instantly subtxn in shard node
+        for (size_t i = 0; i < inregion_subtxns->size(); i++)
+        {
+            for (size_t j = 0; j < inregion_subtxns->at(i).batch_txns().txns_size(); j++)
+            {
+                PB::Txn* subtxn = inregion_subtxns->at(i).mutable_batch_txns()->mutable_txns(j);
+                subtxn->set_status(PB::TxnStatus::EXEC);
+                ExecRead(subtxn);
+            }
+        }
+        // replicate subtxn and share 
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
         LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
         // determinstic process merge
@@ -628,7 +700,7 @@ namespace taas
         storage_->UnlockWrite();
 
         epoch_manager_->AddCommittedEpoch();
-        cv_.notify_one();
+        cv_.notify_all();
         
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
     }

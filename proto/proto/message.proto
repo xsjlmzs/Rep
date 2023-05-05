@@ -58,9 +58,9 @@ message ClientRequest {
 
 message BatchTxns {
     
-    uint64 start_epoch = 1;
+    uint64 commit_epoch = 1;
 
-    repeated Txn txns = 2;
+    repeated Txn txns = 3;
 }
 
 message HeartBeat {

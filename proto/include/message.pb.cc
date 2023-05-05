@@ -84,7 +84,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR BatchTxns::BatchTxns(
     ::_pbi::ConstantInitialized)
   : txns_()
-  , start_epoch_(uint64_t{0u}){}
+  , commit_epoch_(uint64_t{0u}){}
 struct BatchTxnsDefaultTypeInternal {
   PROTOBUF_CONSTEXPR BatchTxnsDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -201,7 +201,7 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::PB::BatchTxns, start_epoch_),
+  PROTOBUF_FIELD_OFFSET(::PB::BatchTxns, commit_epoch_),
   PROTOBUF_FIELD_OFFSET(::PB::BatchTxns, txns_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::PB::HeartBeat, _internal_metadata_),
@@ -275,27 +275,27 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "2\013.PB.Command\022\035\n\006status\030\007 \001(\0162\r.PB.TxnSt"
   "atus\022\020\n\010start_ts\030\010 \001(\004\022\016\n\006end_ts\030\t \001(\004\"B"
   "\n\rClientRequest\022\033\n\tdest_node\030\001 \001(\0132\010.PB."
-  "Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"7\n\tBatchTxns\022"
-  "\023\n\013start_epoch\030\001 \001(\004\022\025\n\004txns\030\002 \003(\0132\007.PB."
-  "Txn\"\013\n\tHeartBeat\"1\n\tAbortTids\022\023\n\013start_e"
-  "poch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\337\002\n\014MessageP"
-  "roto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013src_channel"
-  "\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022\024\n\014dest_cha"
-  "nnel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB.MessagePro"
-  "to.MessageType\022#\n\nbatch_txns\030\025 \001(\0132\r.PB."
-  "BatchTxnsH\000\022#\n\nheart_beat\030\026 \001(\0132\r.PB.Hea"
-  "rtBeatH\000\022#\n\nabort_tids\030\027 \001(\0132\r.PB.AbortT"
-  "idsH\000\022\022\n\ndebug_info\030\037 \001(\t\":\n\013MessageType"
-  "\022\r\n\tHEARTBEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORTT"
-  "IDS\020\002B\016\n\014message_type\"2\n\013ClientReply\022\020\n\010"
-  "exec_res\030\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006OpT"
-  "ype\022\013\n\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006DE"
-  "LETE\020\003*6\n\tTxnStatus\022\010\n\004PEND\020\000\022\010\n\004EXEC\020\001\022"
-  "\t\n\005ABORT\020\002\022\n\n\006COMMIT\020\003b\006proto3"
+  "Node\022\024\n\003txn\030\002 \001(\0132\007.PB.Txn\"8\n\tBatchTxns\022"
+  "\024\n\014commit_epoch\030\001 \001(\004\022\025\n\004txns\030\003 \003(\0132\007.PB"
+  ".Txn\"\013\n\tHeartBeat\"1\n\tAbortTids\022\023\n\013start_"
+  "epoch\030\001 \001(\004\022\017\n\007txn_ids\030\002 \003(\004\"\337\002\n\014Message"
+  "Proto\022\023\n\013src_node_id\030\n \001(\r\022\023\n\013src_channe"
+  "l\030\014 \001(\t\022\024\n\014dest_node_id\030\r \001(\r\022\024\n\014dest_ch"
+  "annel\030\016 \001(\t\022*\n\004type\030\017 \001(\0162\034.PB.MessagePr"
+  "oto.MessageType\022#\n\nbatch_txns\030\025 \001(\0132\r.PB"
+  ".BatchTxnsH\000\022#\n\nheart_beat\030\026 \001(\0132\r.PB.He"
+  "artBeatH\000\022#\n\nabort_tids\030\027 \001(\0132\r.PB.Abort"
+  "TidsH\000\022\022\n\ndebug_info\030\037 \001(\t\":\n\013MessageTyp"
+  "e\022\r\n\tHEARTBEAT\020\000\022\r\n\tBATCHTXNS\020\001\022\r\n\tABORT"
+  "TIDS\020\002B\016\n\014message_type\"2\n\013ClientReply\022\020\n"
+  "\010exec_res\030\001 \001(\010\022\021\n\tquery_set\030\002 \003(\t*3\n\006Op"
+  "Type\022\013\n\007INVALID\020\000\022\007\n\003GET\020\001\022\007\n\003PUT\020\002\022\n\n\006D"
+  "ELETE\020\003*6\n\tTxnStatus\022\010\n\004PEND\020\000\022\010\n\004EXEC\020\001"
+  "\022\t\n\005ABORT\020\002\022\n\n\006COMMIT\020\003b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 990, descriptor_table_protodef_message_2eproto,
+    false, false, 991, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 9,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -1439,12 +1439,12 @@ BatchTxns::BatchTxns(const BatchTxns& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       txns_(from.txns_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  start_epoch_ = from.start_epoch_;
+  commit_epoch_ = from.commit_epoch_;
   // @@protoc_insertion_point(copy_constructor:PB.BatchTxns)
 }
 
 inline void BatchTxns::SharedCtor() {
-start_epoch_ = uint64_t{0u};
+commit_epoch_ = uint64_t{0u};
 }
 
 BatchTxns::~BatchTxns() {
@@ -1471,7 +1471,7 @@ void BatchTxns::Clear() {
   (void) cached_has_bits;
 
   txns_.Clear();
-  start_epoch_ = uint64_t{0u};
+  commit_epoch_ = uint64_t{0u};
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1481,24 +1481,24 @@ const char* BatchTxns::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // uint64 start_epoch = 1;
+      // uint64 commit_epoch = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          start_epoch_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          commit_epoch_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // repeated .PB.Txn txns = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+      // repeated .PB.Txn txns = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr -= 1;
           do {
             ptr += 1;
             ptr = ctx->ParseMessage(_internal_add_txns(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
         } else
           goto handle_unusual;
         continue;
@@ -1531,18 +1531,18 @@ uint8_t* BatchTxns::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // uint64 start_epoch = 1;
-  if (this->_internal_start_epoch() != 0) {
+  // uint64 commit_epoch = 1;
+  if (this->_internal_commit_epoch() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(1, this->_internal_start_epoch(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(1, this->_internal_commit_epoch(), target);
   }
 
-  // repeated .PB.Txn txns = 2;
+  // repeated .PB.Txn txns = 3;
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_txns_size()); i < n; i++) {
     const auto& repfield = this->_internal_txns(i);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(2, repfield, repfield.GetCachedSize(), target, stream);
+        InternalWriteMessage(3, repfield, repfield.GetCachedSize(), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -1561,16 +1561,16 @@ size_t BatchTxns::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .PB.Txn txns = 2;
+  // repeated .PB.Txn txns = 3;
   total_size += 1UL * this->_internal_txns_size();
   for (const auto& msg : this->txns_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // uint64 start_epoch = 1;
-  if (this->_internal_start_epoch() != 0) {
-    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_start_epoch());
+  // uint64 commit_epoch = 1;
+  if (this->_internal_commit_epoch() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_commit_epoch());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
@@ -1596,8 +1596,8 @@ void BatchTxns::MergeFrom(const BatchTxns& from) {
   (void) cached_has_bits;
 
   txns_.MergeFrom(from.txns_);
-  if (from._internal_start_epoch() != 0) {
-    _internal_set_start_epoch(from._internal_start_epoch());
+  if (from._internal_commit_epoch() != 0) {
+    _internal_set_commit_epoch(from._internal_commit_epoch());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -1617,7 +1617,7 @@ void BatchTxns::InternalSwap(BatchTxns* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   txns_.InternalSwap(&other->txns_);
-  swap(start_epoch_, other->start_epoch_);
+  swap(commit_epoch_, other->commit_epoch_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata BatchTxns::GetMetadata() const {

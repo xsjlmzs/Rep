@@ -14,6 +14,13 @@
 namespace taas
 {
     const uint16 kMaxEpoch = 1000;
+    enum Isolation
+    {
+        kReadCommit = 0,
+        kRepeatableRead,
+        kSnapshotIsolation,
+        kSerilizable, // not supported
+    };
     class Server
     {
     private:
@@ -32,11 +39,12 @@ namespace taas
         std::vector<PB::Txn> local_txns_[kMaxEpoch];
 
         uint32_t local_server_id_;
+        Isolation isolation;
 
         uint64_t GenerateTid();
         void HeartbeatAllServers();
         void Execute(const Txn& txn, PB::ClientReply* reply);
-        void ExecRead(PB::Txn& txn);
+        void ExecRead(PB::Txn* txn);
         void ExecWrite(const PB::Txn& txn);
         void BatchWrite(const std::vector<PB::Txn>* txns);
         
@@ -62,6 +70,7 @@ namespace taas
         void Run();
         std::vector<PB::MessageProto>* Distribute(const std::vector<PB::Txn>& local_txns, uint64 epoch);
         std::vector<PB::MessageProto>* Replicate(const std::vector<PB::MessageProto>& inregion_subtxns, uint64 epoch);
+        bool ValidateReadSet(const PB::Txn& txn);
         std::vector<PB::Txn>* Merge(const std::vector<PB::MessageProto>& all_subtxns, const std::vector<PB::MessageProto>& peer_subtxns, uint64 epoch);
 
         // worker

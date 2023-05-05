@@ -46,6 +46,7 @@ make
 make check
 sudo make install
 make installcheck
+cd ..
 ```
 
 ```shell
