@@ -4,10 +4,11 @@
 extern int thread_num;
 extern uint32 epoch_length;
 extern uint64 run_epoch;
+extern taas::Isolation isol;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
-        :config_(config), conn_(conn), client_(client), isolation(kReadCommit), limit_epoch_(run_epoch), deconstructor_invoked_(false)
+        :config_(config), conn_(conn), client_(client), isolation(isol), limit_epoch_(run_epoch), deconstructor_invoked_(false)
     {
         local_server_id_ = config_->node_id_;
         storage_ = new Storage();

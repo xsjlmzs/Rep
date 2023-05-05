@@ -3,10 +3,13 @@
 #include "server.h"
 
 std::string instruction[]{"INVALID", "GET", "PUT", "DELETE"};
+std::string isolations[]{"READ_COMMIT", "REPEATABLE_READ", "SNAPSHOT ISOLATION"};
 int node_id, warerhouse = 10, percent_mp = 10, thread_num = 16;
 std::string config_path = "../conf/server_ip.conf";
 uint32 epoch_length = 10ul;
 uint64 run_epoch = 100ull;
+// 0:RC, 1:RR, 2:SI
+taas::Isolation isol = taas::kReadCommit;
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +34,7 @@ int main(int argc, char *argv[])
             {"epoch_length",optional_argument, nullptr,    'e'},
             {"thread_num",  optional_argument, nullptr,    't'},
             {"run_epoch",   optional_argument, nullptr,    'r'},
+            {"isolation",   optional_argument, nullptr,    'i'},
             { nullptr,      0,                 nullptr,     0 }
         };
 
@@ -63,6 +67,9 @@ int main(int argc, char *argv[])
         case 'r':
             run_epoch = std::stoull(optarg);
             break;
+        case 'i':
+            isol = taas::Isolation(std::stoi(optarg));
+            break;
         case  0 :
             if (long_options[option_index].flag != nullptr)
                 break;
@@ -81,6 +88,7 @@ int main(int argc, char *argv[])
     LOG(INFO) << "epoch_length : " << epoch_length;
     LOG(INFO) << "thread_num : " << thread_num;
     LOG(INFO) << "run_epoch : " << run_epoch; 
+    LOG(INFO) << "isolation : " << isolations[isol];
     std::unique_ptr<Configuration> config(new Configuration(node_id, config_path));
     std::unique_ptr<Connection> conn(new Connection(config.get()));
     std::unique_ptr<Client> client(new Client(config.get(), percent_mp, warerhouse));
