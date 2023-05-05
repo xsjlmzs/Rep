@@ -11,7 +11,7 @@ namespace taas
 
     EpochManager::EpochManager(uint32 epoch_duration = epoch_length) : epoch_duration_(epoch_duration)
     {
-        std::atomic_init(&cur_epoch_, 0);
+        std::atomic_init(&cur_epoch_, 1);
         std::atomic_init(&committed_epoch_, 0);
         deconstructor_invoked_ = false;
     }

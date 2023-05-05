@@ -4,6 +4,11 @@ project(Rep VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+option(CHECK_ATOMIC "check txn atomic" OFF)
+if (CHECK_ATOMIC)
+add_definitions(-DCHECK_ATOMIC)
+endif()
+
 add_definitions(-DTEST)
 
 message(STATUS "CMAKE_SYSTEM: ${CMAKE_SYSTEM}")

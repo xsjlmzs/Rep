@@ -217,7 +217,7 @@ namespace taas
             uint64 cur_epoch = epoch_manager_->GetPhysicalEpoch();
             
             // reach max running epoch, exit
-            if (cur_epoch == limit_epoch_)
+            if (cur_epoch == limit_epoch_+1)
             {
                 std::unique_lock<std::mutex> lk(cv_mutex_);
                 cv_.wait(lk, [this]{return this->epoch_manager_->GetCommittedEpoch() == this->limit_epoch_; });
