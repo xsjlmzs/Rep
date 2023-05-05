@@ -494,7 +494,14 @@ namespace taas
         {
             if (!ValidateReadSet(subtxn))
             {
-                abort_subtxn_set.insert(subtxn.txn_id());
+                PB::Txn new_txn(subtxn);
+                new_txn.set_status(PB::ABORT);
+                abort_subtxn_set.insert(new_txn.txn_id());
+                for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
+                    iter != batch_replies.end(); ++iter)
+                {
+                    iter->second.mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
+                }
             }
         }
         delete pass_local_subtxns;
