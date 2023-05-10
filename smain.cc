@@ -8,6 +8,7 @@ int node_id, warerhouse = 10, percent_mp = 10, thread_num = 16;
 std::string config_path = "../conf/server_ip.conf";
 uint32 epoch_length = 10ul;
 uint64 run_epoch = 100ull;
+uint32 limit_txns = 0x3f3f3f3f;
 // 0:RC, 1:RR, 2:SI
 taas::Isolation isol = taas::kReadCommit;
 
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
             {"thread_num",  optional_argument, nullptr,    't'},
             {"run_epoch",   optional_argument, nullptr,    'r'},
             {"isolation",   optional_argument, nullptr,    'i'},
+            {"limit_txns",  optional_argument, nullptr,    'l'},
             { nullptr,      0,                 nullptr,     0 }
         };
 
@@ -70,6 +72,9 @@ int main(int argc, char *argv[])
         case 'i':
             isol = taas::Isolation(std::stoi(optarg));
             break;
+        case 'l':
+            limit_txns = std::stoul(optarg);
+            break;
         case  0 :
             if (long_options[option_index].flag != nullptr)
                 break;
@@ -89,6 +94,7 @@ int main(int argc, char *argv[])
     LOG(INFO) << "thread_num : " << thread_num;
     LOG(INFO) << "run_epoch : " << run_epoch; 
     LOG(INFO) << "isolation : " << isolations[isol];
+    LOG(INFO) << "limit_txns : " << limit_txns;
     std::unique_ptr<Configuration> config(new Configuration(node_id, config_path));
     std::unique_ptr<Connection> conn(new Connection(config.get()));
     std::unique_ptr<Client> client(new Client(config.get(), percent_mp, warerhouse));

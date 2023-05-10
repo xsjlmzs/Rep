@@ -5,10 +5,11 @@ extern int thread_num;
 extern uint32 epoch_length;
 extern uint64 run_epoch;
 extern taas::Isolation isol;
+extern uint32 limit_txns;
 namespace taas 
 {
     Server::Server(Configuration *config, Connection *conn, Client *client)
-        :config_(config), conn_(conn), client_(client), isolation(isol), limit_epoch_(run_epoch), deconstructor_invoked_(false)
+        :config_(config), conn_(conn), client_(client), isolation(isol), limit_epoch_(run_epoch), limit_txns_(limit_txns),deconstructor_invoked_(false)
     {
         local_server_id_ = config_->node_id_;
         storage_ = new Storage();
@@ -232,6 +233,12 @@ namespace taas
             std::vector<PB::Txn> local_txns;
             while (GetTime() - start_time < epoch_manager_->GetEpochDuration())
             {
+                if (local_txns_[cur_epoch].size() > limit_txns_)
+                {
+                    usleep(100);
+                    continue;
+                }
+                
                 client_->GetTxn(&txn, GenerateTid());
                 txn->set_start_epoch(cur_epoch); // assume all txns are single epoch txn
                 txn->set_end_epoch(cur_epoch);
