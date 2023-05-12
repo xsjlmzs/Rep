@@ -76,6 +76,7 @@ namespace taas
 
         // worker
         void Work(uint64 epoch);
+        void WorkFullReplica(uint64 epoch);
         void Join();
     };
 } // namespace tass

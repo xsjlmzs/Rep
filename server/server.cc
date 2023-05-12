@@ -251,7 +251,7 @@ namespace taas
             LOG(INFO) << "epoch : " << cur_epoch << " " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
             // worker
-            thread_pool_->submit(std::bind(&Server::Work, this, cur_epoch));
+            thread_pool_->submit(std::bind(&Server::WorkFullReplica, this, cur_epoch));
             LOG(INFO) << "------ epoch "<< cur_epoch << " end ------";
             epoch_manager_->AddPhysicalEpoch();
         }
@@ -718,6 +718,149 @@ namespace taas
         cv_.notify_all();
         
         delete inregion_subtxns, outregion_subtxns, committable_subtxns;
+    }
+
+    void Server::WorkFullReplica(uint64 epoch)
+    {
+        // exec
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+        {
+            PB::Txn *txn = &local_txns_[epoch][i];
+            txn->set_status(PB::TxnStatus::EXEC);
+            ExecRead(txn);
+        }
+        for (auto &&txn : local_txns_[epoch])
+        {
+            WriteIntent(txn, epoch);
+        }
+    
+        std::string channel = "Replica_" + std::to_string(epoch);
+        conn_->NewChannel(channel);
+        PB::MessageProto* send_msg_ptr = new PB::MessageProto();
+        for (auto && txn : local_txns_[epoch])
+        {
+            send_msg_ptr->mutable_batch_txns()->add_txns()->CopyFrom(txn);
+        }
+        int sent_msg = 0;
+        // send the whole subtxns in region to other replica's counterpart
+        for (std::map<uint32, Node*>::const_iterator iter = config_->all_nodes_.begin(); iter != config_->all_nodes_.end(); iter++)
+        {
+            uint32 remote_server_id = iter->first;
+            if (remote_server_id != local_server_id_)
+            {
+                // broadcast to all other peer node
+                PB::MessageProto mp(*send_msg_ptr);
+                mp.set_src_node_id(local_server_id_);
+                mp.set_dest_node_id(remote_server_id);
+                mp.set_dest_channel(channel);
+                mp.set_type(PB::MessageProto_MessageType_BATCHTXNS);
+                conn_->Send(mp);
+                sent_msg ++;
+            }
+        }
+        delete send_msg_ptr;
+        
+        LOG(INFO) << "epoch : " << epoch << " Replicate() have sent " << sent_msg << " msgs and barrier";
+        // barrier : wait for the rest msg from out-region's server
+        int counter = 1; // except itself
+        PB::MessageProto recv_subtxn;
+        std::vector<PB::MessageProto>* outregion_subtxns = new std::vector<PB::MessageProto>();
+        while (counter < config_->replica_num_)
+        {
+            // maybe empty
+            if (conn_->GetMessage(channel, &recv_subtxn))
+            {
+                counter++;
+                outregion_subtxns->push_back(recv_subtxn);
+            }
+            else
+            {
+                usleep(100);
+            }
+        }
+        LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
+        conn_->DeleteChannel(channel);
+
+        std::set<uint64> abort_subtxn_set;        
+        for (auto &&txns : *outregion_subtxns)
+        {
+            for (auto &&txn : txns.batch_txns().txns())
+            {
+                WriteIntent(txn, epoch);
+            }
+        }
+
+        // validate
+        std::vector<PB::Txn>* pass_local_subtxns = new std::vector<PB::Txn>();
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+        {
+            if (!Validate(local_txns_[epoch][i], epoch))
+            {
+                local_txns_[epoch][i].set_status(PB::TxnStatus::ABORT);
+                abort_subtxn_set.insert(local_txns_[epoch][i].txn_id());
+            }
+            else
+            {
+                local_txns_[epoch][i].set_status(PB::TxnStatus::COMMIT);
+                pass_local_subtxns->push_back(local_txns_[epoch][i]);
+            }
+        }
+        for (auto &&txns : *outregion_subtxns)
+        {
+            for (auto &&txn : txns.batch_txns().txns())
+            {
+                if (!Validate(txn, epoch))
+                {
+                    abort_subtxn_set.insert(txn.txn_id());
+                }
+            }
+        }
+        
+        // wait for complete of lastest epoch
+        {
+            std::unique_lock<std::mutex> lk(cv_mutex_);
+            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
+            lk.unlock();
+        }
+
+        // validate read-set
+        for (auto &&txn : *pass_local_subtxns)
+        {
+            if (!ValidateReadSet(txn))
+            {
+                abort_subtxn_set.insert(txn.txn_id());
+            }
+        }
+        delete pass_local_subtxns;
+
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+            local_txns_[epoch][i].set_end_ts(GetTime());
+        
+        std::vector<PB::Txn> *committed_txns = new std::vector<PB::Txn>;
+        for (auto &&txn : local_txns_[epoch])
+        {
+            if (!abort_subtxn_set.count(txn.txn_id()))
+            {
+                committed_txns->push_back(txn);
+            }
+        }
+        for (auto &&txns : *outregion_subtxns)
+        {
+            for (auto &&txn : txns.batch_txns().txns())
+            {
+                if (!abort_subtxn_set.count(txn.txn_id()))
+                {
+                    committed_txns->push_back(txn);
+                }
+            }
+        }
+
+        storage_->LockWrite();
+        BatchWrite(committed_txns);
+        storage_->UnlockWrite();
+        epoch_manager_->AddCommittedEpoch();
+        cv_.notify_all();
+        delete outregion_subtxns, committed_txns;
     }
 
     void Server::Join()
