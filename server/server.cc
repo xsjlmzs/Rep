@@ -835,6 +835,7 @@ namespace taas
 
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
             local_txns_[epoch][i].set_end_ts(GetTime());
+        PrintStatistic(epoch);
         
         std::vector<PB::Txn> *committed_txns = new std::vector<PB::Txn>;
         for (auto &&txn : local_txns_[epoch])
