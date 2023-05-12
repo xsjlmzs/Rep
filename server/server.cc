@@ -212,6 +212,7 @@ namespace taas
 
     void Server::Run()
     {
+        launch_ts_ = GetTime();
         PB::Txn *txn = new PB::Txn();
         while (!deconstructor_invoked_)
         {
@@ -634,7 +635,7 @@ namespace taas
             done_txn_cnt_ += cur_txn_cnt;
             done_total_latency_ += cur_lantency;
             // txns per second
-            report.append("avg_throught : " + UInt64ToString(done_txn_cnt_ * 1000L / (epoch_manager_->GetPhysicalEpoch() * epoch_manager_->GetEpochDuration())) + "\n");
+            report.append("avg_throught : " + UInt64ToString(done_txn_cnt_ * 1000L / (GetTime() - launch_ts_) + "\n");
             report.append("avg_lantency : " + UInt64ToString(done_total_latency_ / done_txn_cnt_) + "\n");
         }
 
