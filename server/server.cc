@@ -837,14 +837,6 @@ namespace taas
                 }
             }
         }
-        
-        // wait for complete of lastest epoch
-        {
-            std::unique_lock<std::mutex> lk(cv_mutex_);
-            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
-            lk.unlock();
-        }
-
 
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
             local_txns_[epoch][i].set_end_ts(GetTime());
@@ -867,6 +859,13 @@ namespace taas
                     committed_txns->push_back(txn);
                 }
             }
+        }
+        
+        // wait for complete of lastest epoch
+        {
+            std::unique_lock<std::mutex> lk(cv_mutex_);
+            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
+            lk.unlock();
         }
 
         storage_->LockWrite();
