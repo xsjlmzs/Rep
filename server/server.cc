@@ -791,8 +791,18 @@ namespace taas
             }
         }
 
-        // validate
+        // validate read-set
         std::vector<PB::Txn>* pass_local_subtxns = new std::vector<PB::Txn>();
+        for (auto &&txn : *pass_local_subtxns)
+        {
+            if (!ValidateReadSet(txn))
+            {
+                abort_subtxn_set.insert(txn.txn_id());
+            }
+        }
+        delete pass_local_subtxns;
+
+        // validate
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
             if (!Validate(local_txns_[epoch][i], epoch))
@@ -803,7 +813,6 @@ namespace taas
             else
             {
                 local_txns_[epoch][i].set_status(PB::TxnStatus::COMMIT);
-                pass_local_subtxns->push_back(local_txns_[epoch][i]);
             }
         }
         for (auto &&txns : *outregion_subtxns)
@@ -824,15 +833,6 @@ namespace taas
             lk.unlock();
         }
 
-        // validate read-set
-        for (auto &&txn : *pass_local_subtxns)
-        {
-            if (!ValidateReadSet(txn))
-            {
-                abort_subtxn_set.insert(txn.txn_id());
-            }
-        }
-        delete pass_local_subtxns;
 
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
             local_txns_[epoch][i].set_end_ts(GetTime());
