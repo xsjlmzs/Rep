@@ -620,12 +620,15 @@ namespace taas
         std::ofstream file(filename);
         std::string report;
         uint64 cur_lantency = 0;
-        uint32 cur_txn_cnt = local_txns_[epoch].size();
+        uint32 cur_txn_cnt = 0;
         
-        for (size_t i = 0; i < cur_txn_cnt; i++)
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
+            if (local_txns_[epoch][i].status() == PB::TxnStatus::ABORT)
+                continue;
             uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
             cur_lantency += single_latency;
+            cur_txn_cnt ++;
         }
         {
             std::lock_guard<std::mutex> lock(cnt_mutex_);
