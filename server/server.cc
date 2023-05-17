@@ -623,12 +623,18 @@ namespace taas
         std::ofstream file(filename);
         std::string report;
         uint64 cur_lantency = 0;
-        uint32 cur_txn_cnt = local_txns_[epoch].size();
+        uint32 cur_txn_cnt = 0;
         
-        for (size_t i = 0; i < cur_txn_cnt; i++)
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
+            if (local_txns_[epoch][i].status() != PB::TxnStatus::COMMIT)
+            {
+                continue;
+            }
+            
             uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
             cur_lantency += single_latency;
+            cur_txn_cnt ++;
         }
         {
             std::lock_guard<std::mutex> lock(cnt_mutex_);
@@ -730,7 +736,23 @@ namespace taas
             txn->set_status(PB::TxnStatus::EXEC);
             ExecRead(txn);
         }
-        for (auto &&txn : local_txns_[epoch])
+        usleep(1000);
+        // validate read-set
+        std::vector<PB::Txn> *pass_rv_txns = new std::vector<PB::Txn>();
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+        {
+            PB::Txn *txn = &local_txns_[epoch][i];
+            if (!ValidateReadSet(*txn))
+            {
+                txn->set_status(PB::TxnStatus::ABORT);
+            }
+            else
+            {
+                pass_rv_txns->push_back(*txn);
+            }
+        }
+
+        for (auto &&txn : *pass_rv_txns)
         {
             WriteIntent(txn, epoch);
         }
@@ -738,7 +760,7 @@ namespace taas
         std::string channel = "Replica_" + std::to_string(epoch);
         conn_->NewChannel(channel);
         PB::MessageProto* send_msg_ptr = new PB::MessageProto();
-        for (auto && txn : local_txns_[epoch])
+        for (auto && txn : *pass_rv_txns)
         {
             send_msg_ptr->mutable_batch_txns()->add_txns()->CopyFrom(txn);
         }
@@ -781,8 +803,7 @@ namespace taas
         }
         LOG(INFO) << "epoch : " << epoch << " Replicate() barrier end"; 
         conn_->DeleteChannel(channel);
-
-        std::set<uint64> abort_subtxn_set;        
+       
         for (auto &&txns : *outregion_subtxns)
         {
             for (auto &&txn : txns.batch_txns().txns())
@@ -791,30 +812,21 @@ namespace taas
             }
         }
 
-        // validate read-set
-        std::vector<PB::Txn>* pass_local_subtxns = new std::vector<PB::Txn>();
-        for (auto &&txn : *pass_local_subtxns)
-        {
-            if (!ValidateReadSet(txn))
-            {
-                abort_subtxn_set.insert(txn.txn_id());
-            }
-        }
-        delete pass_local_subtxns;
-
         // validate
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
+            if(local_txns_[epoch][i].status() == PB::TxnStatus::ABORT)
+                continue; 
             if (!Validate(local_txns_[epoch][i], epoch))
             {
                 local_txns_[epoch][i].set_status(PB::TxnStatus::ABORT);
-                abort_subtxn_set.insert(local_txns_[epoch][i].txn_id());
             }
             else
             {
                 local_txns_[epoch][i].set_status(PB::TxnStatus::COMMIT);
             }
         }
+        std::set<uint64> abort_subtxn_set; 
         for (auto &&txns : *outregion_subtxns)
         {
             for (auto &&txn : txns.batch_txns().txns())
@@ -841,7 +853,7 @@ namespace taas
         std::vector<PB::Txn> *committed_txns = new std::vector<PB::Txn>;
         for (auto &&txn : local_txns_[epoch])
         {
-            if (!abort_subtxn_set.count(txn.txn_id()))
+            if (txn.status() == PB::TxnStatus::COMMIT)
             {
                 committed_txns->push_back(txn);
             }
