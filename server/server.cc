@@ -350,6 +350,8 @@ namespace taas
             const PB::MessageProto& subtxns = inregion_subtxns.at(i);
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
+                if (subtxn.status() == PB::TxnStatus::ABORT)
+                    continue;
                 send_msg_ptr->mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
             }
         }
@@ -411,7 +413,8 @@ namespace taas
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
-                WriteIntent(subtxn, epoch);
+                if (subtxn.status() != PB::TxnStatus::ABORT)
+                    WriteIntent(subtxn, epoch);
             }
         }
         for (auto &&subtxns : outregion_subtxns)
@@ -443,11 +446,20 @@ namespace taas
         
         // validate in-region txns 
         // only responsible for the in-region txn's reply
-        std::vector<PB::Txn>* pass_local_subtxns = new std::vector<PB::Txn>();
         for (auto &&subtxns : inregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
             {
+                if (subtxn.status() == PB::TxnStatus::ABORT)
+                {
+                    abort_subtxn_set.insert(subtxn.txn_id());
+                    for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
+                        iter != batch_replies.end(); ++iter)
+                    {
+                        iter->second.mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
+                    }  
+                    continue;
+                }
                 PB::Txn new_txn(subtxn);
                 uint32 remote_node_id = subtxns.src_node_id();
                 bool validate_res = Validate(subtxn, epoch);
@@ -455,7 +467,6 @@ namespace taas
                 {
                     new_txn.set_status(PB::COMMIT);
                     batch_replies[remote_node_id].mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
-                    pass_local_subtxns->push_back(new_txn);
                 }
                 else
                 {
@@ -491,36 +502,11 @@ namespace taas
             }
         }
         
-        // wait for complete of lastest epoch
-        {
-            std::unique_lock<std::mutex> lk(cv_mutex_);
-            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
-            lk.unlock();
-        }
-
-        // validate read-set
-        for (auto &&subtxn : *pass_local_subtxns)
-        {
-            if (!ValidateReadSet(subtxn))
-            {
-                PB::Txn new_txn(subtxn);
-                new_txn.set_status(PB::ABORT);
-                abort_subtxn_set.insert(new_txn.txn_id());
-                for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
-                    iter != batch_replies.end(); ++iter)
-                {
-                    iter->second.mutable_batch_txns()->add_txns()->CopyFrom(new_txn);
-                }
-            }
-        }
-        delete pass_local_subtxns;
-
         // send replies messages to all in-region servers
         int sent_cnt = 0;
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
             iter != batch_replies.end(); ++iter)
         {
-            iter->second.set_debug_info(std::to_string(epoch));
             conn_->Send(iter->second);
             sent_cnt++;
         }
@@ -561,8 +547,19 @@ namespace taas
             }
         }
         
+        // update local txn status
+        for (size_t i = 0; i < local_txns_[epoch].size(); i++)
+        {
+            PB::Txn txn = local_txns_[epoch][i];
+            if(abort_subtxn_set.count(txn.txn_id()))
+                txn.set_status(PB::TxnStatus::ABORT);
+            else
+                txn.set_status(PB::TxnStatus::COMMIT);
+        }
+        
+
+        // committed subtxns
         std::vector<PB::Txn> *committable_subtxns = new std::vector<PB::Txn>();
-        // write in
         for (auto &&subtxns : inregion_subtxns)
         {
             for (auto &&subtxn : subtxns.batch_txns().txns())
@@ -652,8 +649,6 @@ namespace taas
         LOG(INFO) << "epoch : " << epoch << " Start Distribute";
         inregion_subtxns = Distribute(initial_txns, epoch);
         LOG(INFO) << "epoch : " << epoch << " Distribute Finish";
-        // process replicate & collect all out-region subtxns
-        LOG(INFO) << "epoch : " << epoch << " Start Replicate";
         // Exec Read instantly subtxn in shard node
         for (size_t i = 0; i < inregion_subtxns->size(); i++)
         {
@@ -664,6 +659,21 @@ namespace taas
                 ExecRead(subtxn);
             }
         }
+        usleep(1000);
+        //validate read-set
+        for (size_t i = 0; i < inregion_subtxns->size(); i++)
+        {
+            for (size_t j = 0; j < inregion_subtxns->at(i).batch_txns().txns_size(); j++)
+            {
+                PB::Txn* subtxn = inregion_subtxns->at(i).mutable_batch_txns()->mutable_txns(j);
+                if(!ValidateReadSet(*subtxn))
+                {
+                    subtxn->set_status(PB::TxnStatus::ABORT);
+                }
+            }
+        }
+        // process replicate & collect all out-region subtxns
+        LOG(INFO) << "epoch : " << epoch << " Start Replicate";
         // replicate subtxn and share 
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
         LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
@@ -677,16 +687,23 @@ namespace taas
             local_txns_[epoch][i].set_end_ts(GetTime());
         
         PrintStatistic(epoch);
+        // wait for complete of lastest epoch
+        {
+            std::unique_lock<std::mutex> lk(cv_mutex_);
+            cv_.wait(lk, [this, epoch]{return this->epoch_manager_->GetCommittedEpoch() == epoch-1; });
+            lk.unlock();
+        }
+        // atomic write in
+        storage_->LockWrite();
+        BatchWrite(committable_subtxns);
+        // Check Correctness
+        #ifdef CHECK_ATOMIC
         std::set<uint64> committed_tid_set;
         for (size_t i = 0; i < committable_subtxns->size(); i++)
         {
             const PB::Txn& txn = committable_subtxns->at(i);
             committed_tid_set.insert(txn.txn_id());
         }
-        storage_->LockWrite();
-        BatchWrite(committable_subtxns);
-        // Check Correctness
-        #ifdef CHECK_ATOMIC
         bool atomic_test = true;
         for (auto &&subtxns : *inregion_subtxns)
         {
