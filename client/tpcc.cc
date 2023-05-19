@@ -11,8 +11,6 @@ Tpcc::Tpcc(Configuration* config, uint32 warehouse)
     item_end_ = customer_end_ + config_->replica_size_ * (warehouses_per_node_ * NUMBER_OF_ITEMS);
 
     DBSize_ = item_end_;
-
-    LOG(ERROR) << "warehouse : " << warehouse_end_;
 }
 
 Tpcc::~Tpcc()
