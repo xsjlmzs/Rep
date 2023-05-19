@@ -162,6 +162,7 @@ namespace taas
                 }
                 else
                 {
+                    // LOG(ERROR) << crdt_map_[epoch][stat.key()] << " " << txn.txn_id();
                     return false;
                 }
             }
@@ -247,7 +248,6 @@ namespace taas
                 txn->set_start_ts(GetTime());
                 local_txns_[cur_epoch].push_back(*txn);
             }
-            delete txn;
 
             LOG(INFO) << "epoch : " << cur_epoch << " " << local_txns_[cur_epoch].size() << " txns collected, start distribute and merge";
             // process with all other shard peer
@@ -735,6 +735,14 @@ namespace taas
             PB::Txn *txn = &local_txns_[epoch][i];
             txn->set_status(PB::TxnStatus::EXEC);
             ExecRead(txn);
+            // LOG(ERROR) << txn->txn_id();
+            // for (size_t j = 0; j < txn->commands_size(); j++)
+            // {
+            //     if (txn->commands(j).type() == PB::OpType::PUT)
+            //     {
+            //         LOG(ERROR) << txn->commands(j).key();
+            //     }
+            // }
         }
         usleep(1000);
         // validate read-set
@@ -812,9 +820,11 @@ namespace taas
             }
         }
 
+        int abort_cnt = 0, commit_cnt = 0;
         // validate
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
+            abort_cnt++;
             if(local_txns_[epoch][i].status() == PB::TxnStatus::ABORT)
                 continue; 
             if (!Validate(local_txns_[epoch][i], epoch))
@@ -823,9 +833,12 @@ namespace taas
             }
             else
             {
+                abort_cnt--;
+                commit_cnt++;
                 local_txns_[epoch][i].set_status(PB::TxnStatus::COMMIT);
             }
         }
+        LOG(ERROR) << "epoch: " << epoch << " abort cnt: " << abort_cnt << " commit_cnt: " << commit_cnt;
         std::set<uint64> abort_subtxn_set; 
         for (auto &&txns : *outregion_subtxns)
         {

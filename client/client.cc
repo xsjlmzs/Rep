@@ -206,6 +206,6 @@ void Client::GetTxn(PB::Txn** txn, uint64 txn_id)
     }
     else
     {
-        *txn = tpcc.TpccTxnSP(txn_id, relative_node_id);
+        *txn = tpcc.TpccTxnSP(txn_id, config_->node_id_); // attention!
     }
 }

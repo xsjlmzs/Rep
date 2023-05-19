@@ -4,12 +4,15 @@
 Tpcc::Tpcc(Configuration* config, uint32 warehouse)
     : config_(config), warehouses_per_node_(warehouse) 
 {
+    srand((unsigned)time(NULL)); 
     warehouse_end_ = warehouses_per_node_ * config_->replica_size_;
     district_end_ = warehouse_end_ + config_->replica_size_ * (warehouses_per_node_ * DISTRICTS_PER_WAREHOUSE);
     customer_end_ = district_end_ + config_->replica_size_ * (warehouses_per_node_ * DISTRICTS_PER_WAREHOUSE * CUSTOMERS_PER_DISTRICT);
     item_end_ = customer_end_ + config_->replica_size_ * (warehouses_per_node_ * NUMBER_OF_ITEMS);
 
     DBSize_ = item_end_;
+
+    LOG(ERROR) << "warehouse : " << warehouse_end_;
 }
 
 Tpcc::~Tpcc()
