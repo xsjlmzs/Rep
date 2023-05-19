@@ -304,11 +304,10 @@ namespace taas
             {
                 uint32 remote_server_id = iter->first;
                 const PB::Txn& subtxn = iter->second;
-                PB::Txn* added_txn = batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns();
-                added_txn->CopyFrom(subtxn);
+                batch_subtxns[remote_server_id].mutable_batch_txns()->add_txns()->CopyFrom(subtxn);
             }   
         }
-        
+
         // send batch_subtxns to all in-region peers
         for (std::map<uint32, PB::MessageProto>::iterator iter = batch_subtxns.begin(); iter != batch_subtxns.end(); ++iter)
         {
@@ -471,7 +470,7 @@ namespace taas
                 else
                 {
                     new_txn.set_status(PB::ABORT);
-                    abort_subtxn_set.insert(new_txn.txn_id());
+                    abort_subtxn_set.insert(subtxn.txn_id());
                     for (std::map<uint32, PB::MessageProto>::iterator iter = batch_replies.begin();
                         iter != batch_replies.end(); ++iter)
                     {
@@ -550,7 +549,7 @@ namespace taas
         // update local txn status
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
-            PB::Txn txn = local_txns_[epoch][i];
+            PB::Txn& txn = local_txns_[epoch][i];
             if(abort_subtxn_set.count(txn.txn_id()))
                 txn.set_status(PB::TxnStatus::ABORT);
             else
@@ -621,15 +620,18 @@ namespace taas
         std::string report;
         uint64 cur_lantency = 0;
         uint32 cur_txn_cnt = 0;
-        
+        uint32 abort_cnt = 0;
         for (size_t i = 0; i < local_txns_[epoch].size(); i++)
         {
+            abort_cnt ++;
             if (local_txns_[epoch][i].status() == PB::TxnStatus::ABORT)
                 continue;
+            abort_cnt --;
             uint64 single_latency = local_txns_[epoch][i].end_ts() - local_txns_[epoch][i].start_ts();
             cur_lantency += single_latency;
             cur_txn_cnt ++;
         }
+        LOG(ERROR) << "epoch: " << epoch << " abort_cnt: " << abort_cnt << " commit_cnt: " << cur_txn_cnt;
         {
             std::lock_guard<std::mutex> lock(cnt_mutex_);
             done_txn_cnt_ += cur_txn_cnt;
@@ -679,7 +681,6 @@ namespace taas
         LOG(INFO) << "epoch : " << epoch << " Start Replicate";
         // replicate subtxn and share 
         outregion_subtxns = Replicate(*inregion_subtxns, epoch);
-        LOG(INFO) << "epoch : " << epoch << " Replicate Finish";
         // determinstic process merge
         // return value : kvs all will write in db 
         LOG(INFO) << "epoch : " << epoch << " Start Merge";
